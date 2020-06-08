@@ -6,8 +6,8 @@
 //  Copyright © 2019 Everappz. All rights reserved.
 //
 
+#import <AppAuth/AppAuth.h>
 #import "MCHAppAuthProvider.h"
-#import "AppAuth.h"
 
 NSString * const MCHAppAuthProviderDidChangeState = @"MCHAppAuthProviderDidChangeState";
 

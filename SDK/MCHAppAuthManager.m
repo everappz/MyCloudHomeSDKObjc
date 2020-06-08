@@ -6,15 +6,14 @@
 //  Copyright © 2019 Everappz. All rights reserved.
 //
 
+#import <WebKit/WebKit.h>
+#import <AppAuth/AppAuth.h>
 #import "MCHAppAuthManager.h"
 #import "MCHAppAuthProvider.h"
-#import "AppAuth.h"
 #import "MCHAPIClient.h"
 #import "MCHConstants.h"
 #import "NSError+MCHSDK.h"
 #import "MCHEndpointConfiguration.h"
-#import <WebKit/WebKit.h>
-#import "AppAuth.h"
 
 NSString * const MCHAppAuthManagerAuthDidChange = @"MCHAppAuthManagerAuthDidChange";
 NSString * const MCHAppAuthManagerAuthKey = @"MCHAppAuthManagerAuthKey";

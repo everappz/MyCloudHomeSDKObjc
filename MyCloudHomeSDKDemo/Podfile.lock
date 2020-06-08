@@ -1,0 +1,36 @@
+PODS:
+  - AppAuth (1.4.0):
+    - AppAuth/Core (= 1.4.0)
+    - AppAuth/ExternalUserAgent (= 1.4.0)
+  - AppAuth/Core (1.4.0)
+  - AppAuth/ExternalUserAgent (1.4.0)
+  - ISO8601DateFormatter (0.8)
+  - MyCloudHomeSDKObjc (1.0.1):
+    - AppAuth
+    - ISO8601DateFormatter
+
+DEPENDENCIES:
+  - MyCloudHomeSDKObjc (from `https://github.com/leshkoapps/MyCloudHomeSDKObjc.git`)
+
+SPEC REPOS:
+  trunk:
+    - AppAuth
+    - ISO8601DateFormatter
+
+EXTERNAL SOURCES:
+  MyCloudHomeSDKObjc:
+    :git: https://github.com/leshkoapps/MyCloudHomeSDKObjc.git
+
+CHECKOUT OPTIONS:
+  MyCloudHomeSDKObjc:
+    :commit: 4cf6b7351cc11da741b799b448474d7a946a6a70
+    :git: https://github.com/leshkoapps/MyCloudHomeSDKObjc.git
+
+SPEC CHECKSUMS:
+  AppAuth: 31bcec809a638d7bd2f86ea8a52bd45f6e81e7c7
+  ISO8601DateFormatter: 4551b6ce4f83185425f583b0b3feb3c7b59b942c
+  MyCloudHomeSDKObjc: 7bc9eeeb77fe503876aa66861ef058b93ba7c2c8
+
+PODFILE CHECKSUM: f09c5c79245964c5760fb16a45b64b563928ded8
+
+COCOAPODS: 1.8.4

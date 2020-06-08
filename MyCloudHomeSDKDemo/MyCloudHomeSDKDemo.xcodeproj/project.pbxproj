@@ -1,0 +1,464 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 51;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		30B2519C295DE51155F7EF54 /* Pods_MyCloudHomeSDKDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A44C2D395B5E47E68067194 /* Pods_MyCloudHomeSDKDemo.framework */; };
+		AC58075D248E7DF300A5D75A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = AC58075C248E7DF300A5D75A /* AppDelegate.m */; };
+		AC580760248E7DF300A5D75A /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = AC58075F248E7DF300A5D75A /* SceneDelegate.m */; };
+		AC580763248E7DF300A5D75A /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AC580762248E7DF300A5D75A /* ViewController.m */; };
+		AC580766248E7DF300A5D75A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AC580764248E7DF300A5D75A /* Main.storyboard */; };
+		AC580768248E7DF500A5D75A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AC580767248E7DF500A5D75A /* Assets.xcassets */; };
+		AC58076B248E7DF600A5D75A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AC580769248E7DF600A5D75A /* LaunchScreen.storyboard */; };
+		AC58076E248E7DF600A5D75A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = AC58076D248E7DF600A5D75A /* main.m */; };
+		AC580776248E7F1700A5D75A /* MyCloudHomeAuthViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AC580775248E7F1700A5D75A /* MyCloudHomeAuthViewController.m */; };
+		AC580778248E7F4900A5D75A /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC580777248E7F4900A5D75A /* WebKit.framework */; };
+		AC58077A248E7F5000A5D75A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC580779248E7F5000A5D75A /* Foundation.framework */; };
+		AC58077F248E882900A5D75A /* FolderContentViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AC58077E248E882900A5D75A /* FolderContentViewController.m */; };
+		AC580782248E942800A5D75A /* MyCloudHomeHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = AC580781248E942800A5D75A /* MyCloudHomeHelper.m */; };
+		AC580785248E94B400A5D75A /* LSOnlineFile.m in Sources */ = {isa = PBXBuildFile; fileRef = AC580784248E94B400A5D75A /* LSOnlineFile.m */; };
+		AC580789248EE38800A5D75A /* file.png in Resources */ = {isa = PBXBuildFile; fileRef = AC580787248EE38800A5D75A /* file.png */; };
+		AC58078A248EE38800A5D75A /* folder.png in Resources */ = {isa = PBXBuildFile; fileRef = AC580788248EE38800A5D75A /* folder.png */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		203571A62B5C0B58053A28A4 /* Pods-MyCloudHomeSDKDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MyCloudHomeSDKDemo.release.xcconfig"; path = "Target Support Files/Pods-MyCloudHomeSDKDemo/Pods-MyCloudHomeSDKDemo.release.xcconfig"; sourceTree = "<group>"; };
+		687D2701F12AC58A7D1BB32B /* Pods-MyCloudHomeSDKDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MyCloudHomeSDKDemo.debug.xcconfig"; path = "Target Support Files/Pods-MyCloudHomeSDKDemo/Pods-MyCloudHomeSDKDemo.debug.xcconfig"; sourceTree = "<group>"; };
+		9A44C2D395B5E47E68067194 /* Pods_MyCloudHomeSDKDemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MyCloudHomeSDKDemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC580758248E7DF300A5D75A /* MyCloudHomeSDKDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyCloudHomeSDKDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC58075B248E7DF300A5D75A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		AC58075C248E7DF300A5D75A /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		AC58075E248E7DF300A5D75A /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
+		AC58075F248E7DF300A5D75A /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
+		AC580761248E7DF300A5D75A /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		AC580762248E7DF300A5D75A /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		AC580765248E7DF300A5D75A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		AC580767248E7DF500A5D75A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AC58076A248E7DF600A5D75A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		AC58076C248E7DF600A5D75A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AC58076D248E7DF600A5D75A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		AC580774248E7F1700A5D75A /* MyCloudHomeAuthViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MyCloudHomeAuthViewController.h; sourceTree = "<group>"; };
+		AC580775248E7F1700A5D75A /* MyCloudHomeAuthViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MyCloudHomeAuthViewController.m; sourceTree = "<group>"; };
+		AC580777248E7F4900A5D75A /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		AC580779248E7F5000A5D75A /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		AC58077D248E882900A5D75A /* FolderContentViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FolderContentViewController.h; sourceTree = "<group>"; };
+		AC58077E248E882900A5D75A /* FolderContentViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FolderContentViewController.m; sourceTree = "<group>"; };
+		AC580780248E942800A5D75A /* MyCloudHomeHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MyCloudHomeHelper.h; sourceTree = "<group>"; };
+		AC580781248E942800A5D75A /* MyCloudHomeHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MyCloudHomeHelper.m; sourceTree = "<group>"; };
+		AC580783248E94B400A5D75A /* LSOnlineFile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LSOnlineFile.h; sourceTree = "<group>"; };
+		AC580784248E94B400A5D75A /* LSOnlineFile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LSOnlineFile.m; sourceTree = "<group>"; };
+		AC580787248EE38800A5D75A /* file.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = file.png; sourceTree = "<group>"; };
+		AC580788248EE38800A5D75A /* folder.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = folder.png; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AC580755248E7DF300A5D75A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC58077A248E7F5000A5D75A /* Foundation.framework in Frameworks */,
+				AC580778248E7F4900A5D75A /* WebKit.framework in Frameworks */,
+				30B2519C295DE51155F7EF54 /* Pods_MyCloudHomeSDKDemo.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0432194ADB01CD8B365F46CE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				AC580779248E7F5000A5D75A /* Foundation.framework */,
+				AC580777248E7F4900A5D75A /* WebKit.framework */,
+				9A44C2D395B5E47E68067194 /* Pods_MyCloudHomeSDKDemo.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		0ACAB5173FE08C00C7EB0E62 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				687D2701F12AC58A7D1BB32B /* Pods-MyCloudHomeSDKDemo.debug.xcconfig */,
+				203571A62B5C0B58053A28A4 /* Pods-MyCloudHomeSDKDemo.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		AC58074F248E7DF300A5D75A = {
+			isa = PBXGroup;
+			children = (
+				AC58075A248E7DF300A5D75A /* MyCloudHomeSDKDemo */,
+				AC580759248E7DF300A5D75A /* Products */,
+				0ACAB5173FE08C00C7EB0E62 /* Pods */,
+				0432194ADB01CD8B365F46CE /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		AC580759248E7DF300A5D75A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AC580758248E7DF300A5D75A /* MyCloudHomeSDKDemo.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AC58075A248E7DF300A5D75A /* MyCloudHomeSDKDemo */ = {
+			isa = PBXGroup;
+			children = (
+				AC580786248EE38800A5D75A /* Resources */,
+				AC58075B248E7DF300A5D75A /* AppDelegate.h */,
+				AC58075C248E7DF300A5D75A /* AppDelegate.m */,
+				AC58075E248E7DF300A5D75A /* SceneDelegate.h */,
+				AC58075F248E7DF300A5D75A /* SceneDelegate.m */,
+				AC580761248E7DF300A5D75A /* ViewController.h */,
+				AC580762248E7DF300A5D75A /* ViewController.m */,
+				AC580780248E942800A5D75A /* MyCloudHomeHelper.h */,
+				AC580781248E942800A5D75A /* MyCloudHomeHelper.m */,
+				AC580783248E94B400A5D75A /* LSOnlineFile.h */,
+				AC580784248E94B400A5D75A /* LSOnlineFile.m */,
+				AC580774248E7F1700A5D75A /* MyCloudHomeAuthViewController.h */,
+				AC580775248E7F1700A5D75A /* MyCloudHomeAuthViewController.m */,
+				AC58077D248E882900A5D75A /* FolderContentViewController.h */,
+				AC58077E248E882900A5D75A /* FolderContentViewController.m */,
+				AC580764248E7DF300A5D75A /* Main.storyboard */,
+				AC580767248E7DF500A5D75A /* Assets.xcassets */,
+				AC580769248E7DF600A5D75A /* LaunchScreen.storyboard */,
+				AC58076C248E7DF600A5D75A /* Info.plist */,
+				AC58076D248E7DF600A5D75A /* main.m */,
+			);
+			path = MyCloudHomeSDKDemo;
+			sourceTree = "<group>";
+		};
+		AC580786248EE38800A5D75A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AC580787248EE38800A5D75A /* file.png */,
+				AC580788248EE38800A5D75A /* folder.png */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AC580757248E7DF300A5D75A /* MyCloudHomeSDKDemo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AC580771248E7DF600A5D75A /* Build configuration list for PBXNativeTarget "MyCloudHomeSDKDemo" */;
+			buildPhases = (
+				8B430BD2C8E76F9883AC25AE /* [CP] Check Pods Manifest.lock */,
+				AC580754248E7DF300A5D75A /* Sources */,
+				AC580755248E7DF300A5D75A /* Frameworks */,
+				AC580756248E7DF300A5D75A /* Resources */,
+				5F5DA3829732900FCC666E91 /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MyCloudHomeSDKDemo;
+			productName = MyCloudHomeSDKDemo;
+			productReference = AC580758248E7DF300A5D75A /* MyCloudHomeSDKDemo.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AC580750248E7DF300A5D75A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1140;
+				ORGANIZATIONNAME = Everappz;
+				TargetAttributes = {
+					AC580757248E7DF300A5D75A = {
+						CreatedOnToolsVersion = 11.4.1;
+					};
+				};
+			};
+			buildConfigurationList = AC580753248E7DF300A5D75A /* Build configuration list for PBXProject "MyCloudHomeSDKDemo" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AC58074F248E7DF300A5D75A;
+			productRefGroup = AC580759248E7DF300A5D75A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AC580757248E7DF300A5D75A /* MyCloudHomeSDKDemo */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AC580756248E7DF300A5D75A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC58076B248E7DF600A5D75A /* LaunchScreen.storyboard in Resources */,
+				AC580768248E7DF500A5D75A /* Assets.xcassets in Resources */,
+				AC580766248E7DF300A5D75A /* Main.storyboard in Resources */,
+				AC580789248EE38800A5D75A /* file.png in Resources */,
+				AC58078A248EE38800A5D75A /* folder.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		5F5DA3829732900FCC666E91 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MyCloudHomeSDKDemo/Pods-MyCloudHomeSDKDemo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MyCloudHomeSDKDemo/Pods-MyCloudHomeSDKDemo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MyCloudHomeSDKDemo/Pods-MyCloudHomeSDKDemo-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		8B430BD2C8E76F9883AC25AE /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-MyCloudHomeSDKDemo-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AC580754248E7DF300A5D75A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC58077F248E882900A5D75A /* FolderContentViewController.m in Sources */,
+				AC580763248E7DF300A5D75A /* ViewController.m in Sources */,
+				AC580782248E942800A5D75A /* MyCloudHomeHelper.m in Sources */,
+				AC58075D248E7DF300A5D75A /* AppDelegate.m in Sources */,
+				AC58076E248E7DF600A5D75A /* main.m in Sources */,
+				AC580785248E94B400A5D75A /* LSOnlineFile.m in Sources */,
+				AC580760248E7DF300A5D75A /* SceneDelegate.m in Sources */,
+				AC580776248E7F1700A5D75A /* MyCloudHomeAuthViewController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		AC580764248E7DF300A5D75A /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AC580765248E7DF300A5D75A /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		AC580769248E7DF600A5D75A /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AC58076A248E7DF600A5D75A /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		AC58076F248E7DF600A5D75A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		AC580770248E7DF600A5D75A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AC580772248E7DF600A5D75A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 687D2701F12AC58A7D1BB32B /* Pods-MyCloudHomeSDKDemo.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2Z797QJNH7;
+				INFOPLIST_FILE = MyCloudHomeSDKDemo/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.leshko.MyCloudHomeSDKDemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AC580773248E7DF600A5D75A /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 203571A62B5C0B58053A28A4 /* Pods-MyCloudHomeSDKDemo.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2Z797QJNH7;
+				INFOPLIST_FILE = MyCloudHomeSDKDemo/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.leshko.MyCloudHomeSDKDemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AC580753248E7DF300A5D75A /* Build configuration list for PBXProject "MyCloudHomeSDKDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC58076F248E7DF600A5D75A /* Debug */,
+				AC580770248E7DF600A5D75A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AC580771248E7DF600A5D75A /* Build configuration list for PBXNativeTarget "MyCloudHomeSDKDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC580772248E7DF600A5D75A /* Debug */,
+				AC580773248E7DF600A5D75A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AC580750248E7DF300A5D75A /* Project object */;
+}
