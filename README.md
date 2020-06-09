@@ -14,7 +14,7 @@ Before using this SDK please register and get developer keys here: https://devel
 
 Integrate this SDK into your project using Cocoa Pods:
 
-pod 'MyCloudHomeSDKObjc', :git => 'https://github.com/leshkoapps/MyCloudHomeSDKObjc.git'
+pod 'MyCloudHomeSDKObjc'
 
 
 # Apps using this in real life

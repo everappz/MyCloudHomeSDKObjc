@@ -47,13 +47,13 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-- (MCHAPIClient *)clientForIdentifier:(NSString *)identifier authState:(OIDAuthState *)authState{
+- (MCHAPIClient *)clientForIdentifier:(NSString *)identifier
+                            authState:(OIDAuthState *)authState{
     NSParameterAssert(authState);
     NSParameterAssert(identifier);
     
     if(identifier && authState){
         @synchronized (self) {
-            
             MCHAPIClient *client = [self.apiClients objectForKey:identifier];
             if(client){
                 return client;
@@ -83,7 +83,8 @@
     return nil;
 }
 
-- (void)authStateChanged:(OIDAuthState *)authState forIdentifier:(NSString *)identifier{
+- (void)authStateChanged:(OIDAuthState *)authState
+           forIdentifier:(NSString *)identifier{
     NSParameterAssert(authState);
     NSParameterAssert(identifier);
     if(authState && identifier){

@@ -17,9 +17,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (instancetype)sharedCache;
 
-- (MCHAPIClient *_Nullable)clientForIdentifier:(NSString *_Nonnull)identifier authState:(OIDAuthState *_Nonnull)authState;
+- (MCHAPIClient *_Nullable)clientForIdentifier:(NSString *_Nonnull)identifier 
+                                     authState:(OIDAuthState *_Nonnull)authState;
 
-- (void)authStateChanged:(OIDAuthState *_Nonnull)authState forIdentifier:(NSString *_Nonnull)identifier;
+- (void)authStateChanged:(OIDAuthState *_Nonnull)authState 
+           forIdentifier:(NSString *_Nonnull)identifier;
 
 @end
 
