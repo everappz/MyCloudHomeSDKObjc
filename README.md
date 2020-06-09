@@ -16,7 +16,6 @@ Integrate this SDK into your project using Cocoa Pods:
 
 pod 'MyCloudHomeSDKObjc'
 
-
 # Apps using this in real life
 
 [**Evermusic**](https://itunes.apple.com/us/app/evermusic/id885367198?ls=1&mt=8)
@@ -25,6 +24,10 @@ pod 'MyCloudHomeSDKObjc'
 
 [**Flacbox**](https://apps.apple.com/us/app/flacbox-flac-player-equalizer/id1097564256)
 
+
+ # Screenshots
+ <img src="https://github.com/leshkoapps/MyCloudHomeSDKObjc/blob/master/Screenshots/login_screen.png" width="300"><img src="https://github.com/leshkoapps/MyCloudHomeSDKObjc/blob/master/Screenshots/ask_permissions.png" width="300"><img src="https://github.com/leshkoapps/MyCloudHomeSDKObjc/blob/master/Screenshots/folder_content.png" width="300">
+ 
 # Contacts
  
  For additional information please contact: 
