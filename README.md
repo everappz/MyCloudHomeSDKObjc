@@ -1,6 +1,6 @@
 # MyCloudHomeSDKObjc
 
-This project is Objc SKD for My Cloud Home API which available here: https://developer.westerndigital.com/develop/wd-my-cloud-home/api.html
+This project is Objc SKD for WD My Cloud Home API which available here: https://developer.westerndigital.com/develop/wd-my-cloud-home/api.html
 
 It allows you to connect My Cloud Home device and perform basic file manager operations: MOVE, DELETE, CREATE FOLDER, DOWNLOAD FILE, CONTENTS OF DERECTORY and so on.
 
