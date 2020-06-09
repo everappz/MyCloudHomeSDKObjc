@@ -7,6 +7,6 @@ target 'MyCloudHomeSDKDemo' do
 
   # Pods for MyCloudHomeSDKDemo
 
-  pod 'MyCloudHomeSDKObjc'
+  pod 'MyCloudHomeSDKObjc', '~> 1.0.2'
 
 end

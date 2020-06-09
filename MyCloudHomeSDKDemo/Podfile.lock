@@ -5,12 +5,12 @@ PODS:
   - AppAuth/Core (1.4.0)
   - AppAuth/ExternalUserAgent (1.4.0)
   - ISO8601DateFormatter (0.8)
-  - MyCloudHomeSDKObjc (1.0.1):
+  - MyCloudHomeSDKObjc (1.0.2):
     - AppAuth
     - ISO8601DateFormatter
 
 DEPENDENCIES:
-  - MyCloudHomeSDKObjc
+  - MyCloudHomeSDKObjc (~> 1.0.2)
 
 SPEC REPOS:
   trunk:
@@ -21,8 +21,8 @@ SPEC REPOS:
 SPEC CHECKSUMS:
   AppAuth: 31bcec809a638d7bd2f86ea8a52bd45f6e81e7c7
   ISO8601DateFormatter: 4551b6ce4f83185425f583b0b3feb3c7b59b942c
-  MyCloudHomeSDKObjc: 77413d7a68cae7c26e2c7f01870141e886a8f812
+  MyCloudHomeSDKObjc: 03e2326798ec2a0af889ab17ae33b60a5782fe02
 
-PODFILE CHECKSUM: be68442a6e3d4f710107b7369e7482f68b8281a0
+PODFILE CHECKSUM: cf5da721e11f2c2c0ed47395f796fbf7693879fc
 
 COCOAPODS: 1.8.4
