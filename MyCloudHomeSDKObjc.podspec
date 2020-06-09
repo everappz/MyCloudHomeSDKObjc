@@ -8,6 +8,7 @@ Pod::Spec.new do |s|
   s.requires_arc = true
   s.platform     = :ios, '9.0'
   s.source_files = 'SDK/*.{h,m}'
+  s.license = 'MIT'
   s.framework    = 'Foundation', 'WebKit'
   s.dependency 'ISO8601DateFormatter'
   s.dependency 'AppAuth'
