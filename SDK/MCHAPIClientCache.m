@@ -8,6 +8,7 @@
 
 #import "MCHAPIClientCache.h"
 #import "MCHAppAuthProvider.h"
+#import "MCHAppAuthManager.h"
 #import "MCHAPIClient.h"
 
 @interface MCHAPIClientCache()
@@ -72,7 +73,8 @@
             }
             client = [[MCHAPIClient alloc] initWithSessionConfiguration:nil
                                                   endpointConfiguration:nil
-                                                           authProvider:authProvider];
+                                                           authProvider:authProvider
+                                                            authZeroURL:[MCHAppAuthManager sharedManager].authZeroURL];
             NSParameterAssert(client);
             if(client){
                 [self.apiClients setObject:client forKey:identifier];

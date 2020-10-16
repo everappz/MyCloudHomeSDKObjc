@@ -11,7 +11,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class MCHEndpointConfiguration;
+@protocol MCHEndpointConfiguration;
 @class MCHAppAuthProvider;
 
 typedef void(^MCHAPIClientDictionaryCompletionBlock)(NSDictionary *_Nullable dictionary, NSError * _Nullable error);
@@ -46,8 +46,9 @@ typedef void(^MCHAPIClientURLCompletionBlock)(NSURL *_Nullable location, NSError
 @interface MCHAPIClient : NSObject
 
 - (instancetype)initWithSessionConfiguration:(NSURLSessionConfiguration * _Nullable )configuration
-                       endpointConfiguration:(MCHEndpointConfiguration * _Nullable)endpointConfiguration
-                                authProvider:(MCHAppAuthProvider *_Nullable)authProvider;
+                       endpointConfiguration:(id<MCHEndpointConfiguration> _Nullable)endpointConfiguration
+                                authProvider:(MCHAppAuthProvider *_Nullable)authProvider
+                                 authZeroURL:(nullable NSURL *)authZeroURL;
 
 @property (nonatomic,strong)MCHAppAuthProvider *authProvider;
 

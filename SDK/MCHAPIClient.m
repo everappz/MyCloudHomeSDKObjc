@@ -14,7 +14,7 @@
 #import "MCHFile.h"
 
 
-typedef void(^MCHAPIClientEndpointAndAccessTokenCompletionBlock)(MCHEndpointConfiguration * _Nullable endpointConfiguration,
+typedef void(^MCHAPIClientEndpointAndAccessTokenCompletionBlock)(id<MCHEndpointConfiguration> _Nullable endpointConfiguration,
                                                                  NSString * _Nullable accessToken,
                                                                  NSError * _Nullable error);
 
@@ -44,9 +44,10 @@ NSURLSessionDownloadDelegate
 
 @property (nonatomic,strong)NSOperationQueue *callbackQueue;
 @property (nonatomic,strong)NSURLSession *session;
-@property (nonatomic,strong)MCHEndpointConfiguration *endpointConfiguration;
+@property (nonatomic,strong)id<MCHEndpointConfiguration> endpointConfiguration;
 @property (nonatomic,strong)NSDictionary *userInfo;
 @property (nonatomic,strong)NSMutableArray<MCHAPIClientCancellableRequest> *cancellableRequests;
+@property (nonatomic,strong,nullable)NSURL *authZeroURL;
 
 @end
 
@@ -54,9 +55,11 @@ NSURLSessionDownloadDelegate
 
 @implementation MCHAPIClient
 
+
 - (instancetype)initWithSessionConfiguration:(NSURLSessionConfiguration * _Nullable )configuration
-                       endpointConfiguration:(MCHEndpointConfiguration * _Nullable)endpointConfiguration
-                                authProvider:(MCHAppAuthProvider *_Nullable)authProvider{
+                       endpointConfiguration:(id<MCHEndpointConfiguration> _Nullable)endpointConfiguration
+                                authProvider:(MCHAppAuthProvider *_Nullable)authProvider
+                                 authZeroURL:(nullable NSURL *)authZeroURL{
     
     self = [super init];
     if(self){
@@ -75,6 +78,7 @@ NSURLSessionDownloadDelegate
                                                 delegateQueue:self.callbackQueue];
         self.endpointConfiguration = endpointConfiguration;
         self.authProvider = authProvider;
+        self.authZeroURL = authZeroURL;
         self.cancellableRequests = [NSMutableArray<MCHAPIClientCancellableRequest> new];
     }
     return self;
@@ -117,7 +121,7 @@ NSURLSessionDownloadDelegate
     MCHMakeWeakSelf;
     MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(MCHEndpointConfiguration * _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -153,7 +157,7 @@ NSURLSessionDownloadDelegate
     MCHMakeWeakSelf;
     MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(MCHEndpointConfiguration * _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -189,7 +193,7 @@ NSURLSessionDownloadDelegate
     MCHMakeWeakSelf;
     MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(MCHEndpointConfiguration * _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -247,7 +251,7 @@ NSURLSessionDownloadDelegate
     }
     MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(MCHEndpointConfiguration * _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -325,7 +329,7 @@ NSURLSessionDownloadDelegate
     }
     MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(MCHEndpointConfiguration * _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -370,7 +374,7 @@ NSURLSessionDownloadDelegate
     }
     MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(MCHEndpointConfiguration * _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -438,7 +442,7 @@ NSURLSessionDownloadDelegate
     }
     MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(MCHEndpointConfiguration * _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -518,7 +522,7 @@ NSURLSessionDownloadDelegate
     }
     MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(MCHEndpointConfiguration * _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -570,7 +574,7 @@ NSURLSessionDownloadDelegate
     clientRequest.didReceiveResponseBlock = didReceiveResponse;
     clientRequest.errorCompletionBlock = completion;
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(MCHEndpointConfiguration * _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -610,7 +614,7 @@ NSURLSessionDownloadDelegate
     }
     MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(MCHEndpointConfiguration * _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -657,7 +661,7 @@ NSURLSessionDownloadDelegate
             clientRequest.totalContentSize = file.size;
         }
         MCHMakeStrongSelfAndReturnIfNil;
-        id<MCHAPIClientCancellableRequest> tokenRequest = [strongSelf getAccessTokenEndpointConfigurationWithCompletion:^(MCHEndpointConfiguration * _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+        id<MCHAPIClientCancellableRequest> tokenRequest = [strongSelf getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
             MCHMakeStrongSelfAndReturnIfNil;
             if(error){
                 [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -716,8 +720,8 @@ NSURLSessionDownloadDelegate
     clientRequest.errorCompletionBlock = completionBlock;
     clientRequest.totalContentSize = @(contentSize);
     MCHMakeWeakReference(clientRequest);
-
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(MCHEndpointConfiguration * _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    
+    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -880,7 +884,7 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite{
     MCHMakeWeakSelf;
     MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    void(^getAccessTokenForEndpointConfigurationBlock)(MCHEndpointConfiguration *_Nullable endpointConfiguration, NSError * _Nullable endpointError) = ^(MCHEndpointConfiguration *_Nullable endpointConfiguration, NSError * _Nullable endpointError){
+    void(^getAccessTokenForEndpointConfigurationBlock)(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSError * _Nullable endpointError) = ^(id<MCHEndpointConfiguration>_Nullable endpointConfiguration, NSError * _Nullable endpointError){
         MCHMakeStrongSelfAndReturnIfNil;
         NSCParameterAssert(strongSelf.authProvider);
         if(strongSelf.authProvider){
@@ -904,9 +908,11 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite{
     else{
         id<MCHAPIClientCancellableRequest> internalRequest = [self getEndpointConfigurationWithCompletion:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
             MCHMakeStrongSelfAndReturnIfNil;
-            MCHEndpointConfiguration *endpointConfiguration = nil;
+            id<MCHEndpointConfiguration> endpointConfiguration = nil;
             if(dictionary){
-                endpointConfiguration = [[MCHEndpointConfiguration alloc] initWithDictionary:[dictionary objectForKey:kMCHData]];
+                endpointConfiguration =
+                [MCHEndpointConfigurationBuilder configurationWithDictionary:dictionary
+                                                                 authZeroURL:strongSelf.authZeroURL];
                 strongSelf.endpointConfiguration = endpointConfiguration;
             }
             weak_clientRequest.internalRequest = nil;

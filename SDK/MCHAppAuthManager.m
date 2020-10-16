@@ -25,6 +25,7 @@ NSString * const MCHAppAuthManagerErrorKey = @"MCHAppAuthManagerErrorKey";
 @property(nonatomic, copy) NSString *clientSecret;
 @property(nonatomic, copy) NSString *redirectURI;
 @property(nonatomic, strong) NSArray *scopes;
+@property(nonatomic, strong) NSURL *authZeroURL;
 @property(nonatomic, strong) MCHAPIClient *apiClient;
 @property(nonatomic, strong) NSDictionary<NSString *, NSString *> *authorizationRequestAdditionalParameters;
 @property(nonatomic, strong) NSDictionary<NSString *, NSString *> *tokenExchangeAdditionalParameters;
@@ -46,12 +47,14 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
                         clientSecret:(NSString *)clientSecret
                          redirectURI:(NSString *)redirectURI
                               scopes:(NSArray<NSString *>*)scopes
+                         authZeroURL:(nullable NSURL *)authZeroURL
       authorizationRequestParameters:(nullable NSDictionary<NSString *, NSString *> *)authorizationRequestAdditionalParameters
              tokenExchangeParameters:(nullable NSDictionary<NSString *, NSString *> *)tokenExchangeAdditionalParameters{
     _sharedAuthManager = [[MCHAppAuthManager alloc] initWithClientID:clientID
                                                         clientSecret:clientSecret
                                                          redirectURI:redirectURI
                                                               scopes:scopes
+                                                         authZeroURL:authZeroURL
                                       authorizationRequestParameters:authorizationRequestAdditionalParameters
                                              tokenExchangeParameters:tokenExchangeAdditionalParameters];
 }
@@ -81,10 +84,15 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
              @"user_read"];
 }
 
++ (nullable NSURL *)defaultAuthZeroURL {
+    return [NSURL URLWithString:@"https://wdc.auth0.com"];
+}
+
 - (instancetype)initWithClientID:(NSString *)clientID
                     clientSecret:(NSString *)clientSecret
                      redirectURI:(NSString *)redirectURI
                           scopes:(NSArray<NSString *>*)scopes
+                     authZeroURL:(nullable NSURL *)authZeroURL
   authorizationRequestParameters:(nullable NSDictionary<NSString *, NSString *> *)authorizationRequestAdditionalParameters
          tokenExchangeParameters:(nullable NSDictionary<NSString *, NSString *> *)tokenExchangeAdditionalParameters{
     NSParameterAssert(clientID);
@@ -95,6 +103,7 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
         self.clientSecret = clientSecret;
         self.redirectURI = redirectURI;
         self.scopes = scopes;
+        self.authZeroURL = authZeroURL;
         self.authorizationRequestAdditionalParameters = authorizationRequestAdditionalParameters;
         self.tokenExchangeAdditionalParameters = tokenExchangeAdditionalParameters;
     }
@@ -135,22 +144,28 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
                webViewDidFinishLoadingBlock:(MCHAuthorizationUserAgentWebViewLoadingBlock) webViewDidFinishLoadingBlock
                webViewDidFailWithErrorBlock:(MCHAuthorizationUserAgentWebViewErrorBlock) webViewDidFailWithErrorBlock
                             completionBlock:(MCHAppAuthManagerAuthorizationCallback)completionBlock{
-    
     NSCParameterAssert(webView);
-    self.apiClient = [[MCHAPIClient alloc] initWithSessionConfiguration:nil endpointConfiguration:nil authProvider:nil];
+    NSURL *authZeroURLUpdated = self.authZeroURL;
+    self.apiClient = [[MCHAPIClient alloc] initWithSessionConfiguration:nil
+                                                  endpointConfiguration:nil
+                                                           authProvider:nil
+                                                            authZeroURL:authZeroURLUpdated];
     
     MCHMakeWeakSelf;
     [self.apiClient getEndpointConfigurationWithCompletion:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        MCHEndpointConfiguration *endPointConfiguration = [[MCHEndpointConfiguration alloc] initWithDictionary:[dictionary objectForKey:kMCHData]];
-        NSURL *authZeroURL = [endPointConfiguration authZeroURL];
+        id<MCHEndpointConfiguration> endPointConfiguration =
+        [MCHEndpointConfigurationBuilder configurationWithDictionary:dictionary
+                                                         authZeroURL:authZeroURLUpdated];
+        NSURL *authZeroURL = endPointConfiguration.authZeroURL;
         
         if(authZeroURL){
             
             NSURL *authorizationEndpoint = [authZeroURL URLByAppendingPathComponent:kMCHAuthorize];
             NSURL *tokenEndpoint = [authZeroURL URLByAppendingPathComponent:kMCHOAuthToken];
             
-            OIDAuthorizationRequest *authRequest = [strongSelf authorizationRequestWithAuthorizationEndpoint:authorizationEndpoint tokenEndpoint:tokenEndpoint];
+            OIDAuthorizationRequest *authRequest = [strongSelf authorizationRequestWithAuthorizationEndpoint:authorizationEndpoint
+                                                                                               tokenEndpoint:tokenEndpoint];
             if(authRequest){
                 dispatch_async(dispatch_get_main_queue(), ^{
                     strongSelf.currentAuthorizationFlow =

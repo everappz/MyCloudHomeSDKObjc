@@ -16,11 +16,11 @@ extern NSString * const MCHAppAuthManagerAuthKey;
 extern NSString * const MCHAppAuthManagerErrorKey;
 
 @class WKWebView;
-@class MCHEndpointConfiguration;
+@protocol MCHEndpointConfiguration;
 @class OIDAuthState;
 
 typedef void (^MCHAppAuthManagerAuthorizationCallback)(OIDAuthState *_Nullable authState,
-                                                       MCHEndpointConfiguration *_Nullable endpointConfiguration,
+                                                       id<MCHEndpointConfiguration>_Nullable endpointConfiguration,
                                                        NSError *_Nullable error);
 
 @interface MCHAppAuthManager : NSObject
@@ -31,12 +31,20 @@ typedef void (^MCHAppAuthManagerAuthorizationCallback)(OIDAuthState *_Nullable a
                         clientSecret:(NSString *)clientSecret
                          redirectURI:(NSString *)redirectURI
                               scopes:(NSArray<NSString *>*)scopes
+                         authZeroURL:(nullable NSURL *)authZeroURL
       authorizationRequestParameters:(nullable NSDictionary<NSString *, NSString *> *)authorizationRequestAdditionalParameters
              tokenExchangeParameters:(nullable NSDictionary<NSString *, NSString *> *)tokenExchangeAdditionalParameters;
+
+@property(nonatomic, copy, readonly) NSString *clientID;
+@property(nonatomic, copy, readonly) NSString *clientSecret;
+@property(nonatomic, copy, readonly) NSString *redirectURI;
+@property(nonatomic, strong, readonly) NSArray *scopes;
+@property(nonatomic, strong, readonly) NSURL *authZeroURL;
 
 + (NSDictionary<NSString *, NSString *> *)defaultTokenExchangeParameters;
 + (NSDictionary<NSString *, NSString *> *)defaultAuthorizationRequestParameters;
 + (NSArray<NSString *> *)defaultScopes;
++ (nullable NSURL *)defaultAuthZeroURL;
 
 + (instancetype)new NS_UNAVAILABLE;
 - (instancetype)init NS_UNAVAILABLE;

@@ -11,14 +11,21 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface MCHEndpointConfiguration : MCHObject
+@protocol MCHEndpointConfiguration <NSObject>
 
-- (NSURL * _Nullable)authZeroURL;
+- (NSURL *)authZeroURL;
 
-- (NSURL * _Nullable)serviceAuthUrl;
-
-- (NSURL * _Nullable)serviceDeviceURL;
+- (NSURL *)serviceDeviceURL;
 
 @end
+
+
+@interface MCHEndpointConfigurationBuilder : NSObject
+
++ (id<MCHEndpointConfiguration>)configurationWithDictionary:(NSDictionary * _Nonnull)dictionary
+                                                authZeroURL:(NSURL * _Nullable)authZeroURL;
+
+@end
+
 
 NS_ASSUME_NONNULL_END

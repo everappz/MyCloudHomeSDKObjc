@@ -10,7 +10,13 @@
 #import "MCHEndpointConfiguration.h"
 #import "MCHConstants.h"
 
-@implementation MCHEndpointConfiguration
+
+@interface MCHEndpointServerConfigurationModel : MCHObject
+
+@end
+
+
+@implementation MCHEndpointServerConfigurationModel
 
 - (NSDictionary *)cloudServiceUrls{
     NSParameterAssert(self.dictionary);
@@ -29,12 +35,53 @@
     return [self cloudServiceUrlForKey:kMCHServiceAuth0Url];
 }
 
-- (NSURL *)serviceAuthUrl{
-    return [self cloudServiceUrlForKey:kMCHServiceAuthUrl];
-}
-
 - (NSURL *)serviceDeviceURL{
     return [self cloudServiceUrlForKey:kMCHServiceDeviceUrl];
 }
 
 @end
+
+
+@interface MCHEndpointConfigurationImplementation : NSObject <MCHEndpointConfiguration>
+
+- (instancetype)initWithAuthZeroURL:(NSURL *)authZeroURL
+                   serviceDeviceURL:(NSURL *)serviceDeviceURL;
+
+@property (nonatomic,strong)NSURL *authZeroURL;
+
+@property (nonatomic,strong)NSURL *serviceDeviceURL;
+
+@end
+
+@implementation MCHEndpointConfigurationImplementation
+
+- (instancetype)initWithAuthZeroURL:(NSURL *)authZeroURL
+                   serviceDeviceURL:(NSURL *)serviceDeviceURL{
+    self = [super init];
+    if(self){
+        self.authZeroURL = authZeroURL;
+        self.serviceDeviceURL = serviceDeviceURL;
+    }
+    return self;
+}
+
+@end
+
+
+@implementation MCHEndpointConfigurationBuilder
+
++ (id<MCHEndpointConfiguration>)configurationWithDictionary:(NSDictionary * _Nonnull)dictionary
+                                                authZeroURL:(NSURL * _Nullable)authZeroURL{
+    MCHEndpointServerConfigurationModel *endPointConfigurationServerModel =
+    [[MCHEndpointServerConfigurationModel alloc] initWithDictionary:[dictionary objectForKey:kMCHData]];
+    NSURL *authURL = authZeroURL?authZeroURL:endPointConfigurationServerModel.authZeroURL;
+    NSURL *serviceDeviceURL = endPointConfigurationServerModel.serviceDeviceURL;
+    id<MCHEndpointConfiguration> endPointConfiguration =
+    [[MCHEndpointConfigurationImplementation alloc] initWithAuthZeroURL:authURL
+                                                       serviceDeviceURL:serviceDeviceURL];
+    
+    return endPointConfiguration;
+}
+
+@end
+
