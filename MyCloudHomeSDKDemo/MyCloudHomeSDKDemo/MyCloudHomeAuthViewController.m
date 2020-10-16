@@ -73,7 +73,7 @@
     } webViewDidFailWithErrorBlock:^(WKWebView * _Nonnull webView, NSError * _Nonnull webViewError) {
         [weakSelf.activityIndicator stopAnimating];
         [weakSelf completeWithError:webViewError];
-    } completionBlock:^(OIDAuthState * _Nullable authState, MCHEndpointConfiguration * _Nullable endpointConfiguration, NSError * _Nullable error) {
+    } completionBlock:^(OIDAuthState * _Nullable authState, id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSError * _Nullable error) {
         if(authState){
             MCHAppAuthProvider *authProvider =
             [[MCHAppAuthProvider alloc] initWithIdentifier:[MyCloudHomeHelper uuidString]
@@ -81,7 +81,8 @@
             weakSelf.apiClient =
             [[MCHAPIClient alloc] initWithSessionConfiguration:nil
                                          endpointConfiguration:endpointConfiguration
-                                                  authProvider:authProvider];
+                                                  authProvider:authProvider
+                                                   authZeroURL:MCHAppAuthManager.sharedManager.authZeroURL];
             [weakSelf.apiClient getUserInfoWithCompletion:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
                 if(dictionary){
                     if(dictionary){
