@@ -49,7 +49,8 @@
 }
 
 - (MCHAPIClient *)clientForIdentifier:(NSString *)identifier
-                            authState:(OIDAuthState *)authState{
+                            authState:(OIDAuthState *)authState
+                 sessionConfiguration:(NSURLSessionConfiguration * _Nullable)sessionConfiguration{
     NSParameterAssert(authState);
     NSParameterAssert(identifier);
     
@@ -71,7 +72,7 @@
             if(authProvider==nil){
                 return nil;
             }
-            client = [[MCHAPIClient alloc] initWithSessionConfiguration:nil
+            client = [[MCHAPIClient alloc] initWithSessionConfiguration:sessionConfiguration
                                                   endpointConfiguration:nil
                                                            authProvider:authProvider
                                                             authZeroURL:[MCHAppAuthManager sharedManager].authZeroURL];
