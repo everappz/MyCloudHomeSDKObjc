@@ -112,7 +112,7 @@ NSURLSessionDownloadDelegate
 }
 
 - (id<MCHAPIClientCancellableRequest>)getUserInfoWithCompletion:(MCHAPIClientDictionaryCompletionBlock _Nullable )completion{
-    if(self.userInfo){
+    if([self.userInfo count] > 0){
         if(completion){
             completion(self.userInfo,nil);
         }
@@ -142,7 +142,9 @@ NSURLSessionDownloadDelegate
                                                                           withData:data
                                                                           response:response
                                                                              error:error];
-                strongSelf.userInfo = userInfo;
+                if(userInfo.count > 0){
+                    strongSelf.userInfo = userInfo;
+                }
             }];
             weak_clientRequest.internalRequest = (id<MCHAPIClientCancellableRequest>)task;
             [task resume];
