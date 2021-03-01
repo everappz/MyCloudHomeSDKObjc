@@ -77,26 +77,30 @@
         if(authState){
             MCHAppAuthProvider *authProvider =
             [[MCHAppAuthProvider alloc] initWithIdentifier:[MyCloudHomeHelper uuidString]
-                                                     state:authState];
+                                                  userInfo:nil
+                                                     state:authState
+                                    refreshTokenParameters:nil];
             weakSelf.apiClient =
-            [[MCHAPIClient alloc] initWithSessionConfiguration:nil
-                                         endpointConfiguration:endpointConfiguration
-                                                  authProvider:authProvider
-                                                   authZeroURL:MCHAppAuthManager.sharedManager.authZeroURL];
-            [weakSelf.apiClient getUserInfoWithCompletion:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
-                if(dictionary){
+            [[MCHAPIClient alloc] initWithURLSessionConfiguration:nil
+                                            endpointConfiguration:endpointConfiguration
+                                                     authProvider:authProvider];
+            //delay to avoid 429 error code
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [weakSelf.apiClient getUserInfoWithCompletionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
                     if(dictionary){
-                        [weakSelf completeWithAuthState:authState
-                                   userIDInfoDictionary:dictionary];
+                        if(dictionary){
+                            [weakSelf completeWithAuthState:authState
+                                       userIDInfoDictionary:dictionary];
+                        }
+                        else{
+                            [weakSelf completeWithError:error];
+                        }
                     }
                     else{
                         [weakSelf completeWithError:error];
                     }
-                }
-                else{
-                    [weakSelf completeWithError:error];
-                }
-            }];
+                }];
+            });
         }
         else{
             [weakSelf completeWithError:error];
@@ -120,11 +124,16 @@
          userIDInfoDictionary:(NSDictionary * _Nullable)userIDInfoDictionary{
     MCHUser *user = [[MCHUser alloc] initWithDictionary:userIDInfoDictionary];
     NSString *userID = [user identifier];
-    //NSString *userEmail = [user email];
+    NSString *userEmail = [user email];
     NSParameterAssert(userID);
+    NSParameterAssert(userEmail);
     NSMutableDictionary *authResult = [NSMutableDictionary new];
-    [authResult setObject:userID forKey:MCHUserID];
-    [authResult setObject:[MyCloudHomeHelper uuidString] forKey:MCHClientID];
+    if (userEmail) {
+        [authResult setObject:userEmail forKey:MCHUserEmail];
+    }
+    if (userID) {
+        [authResult setObject:userID forKey:MCHUserID];
+    }
     if(authState){
         NSData *authData = [NSKeyedArchiver archivedDataWithRootObject:authState];
         NSParameterAssert(authData);

@@ -8,60 +8,78 @@
 
 #import <AppAuth/AppAuth.h>
 #import "MCHAppAuthProvider.h"
+#import "MCHConstants.h"
 
 NSString * const MCHAppAuthProviderDidChangeState = @"MCHAppAuthProviderDidChangeState";
 
 @interface MCHAppAuthProvider()<OIDAuthStateChangeDelegate>
 
-@property(nonatomic, strong) OIDAuthState *authState;
-@property(nonatomic, copy) NSString *accessToken;
-@property(nonatomic, copy) NSString *identifier;
+@property (atomic, assign) BOOL needsToCallStateDidChangeNotification;
+@property (atomic, assign) NSInteger pendingRequestsCount;
+@property (nonatomic, strong) OIDAuthState *authState;
+@property (nonatomic, copy) NSString *identifier;
+@property (nonatomic, copy, nullable) NSDictionary *userInfo;
+@property (nonatomic, copy, nullable) NSDictionary *refreshTokenParameters;
 
 @end
 
 
 @implementation MCHAppAuthProvider
 
-- (instancetype)initWithIdentifier:(NSString *)identifier accessToken:(NSString *)accessToken{
-    self = [super init];
-    if(self){
-        NSParameterAssert(accessToken);
-        self.accessToken = accessToken;
-        self.identifier = identifier;
+- (instancetype)initWithIdentifier:(NSString *)identifier
+                          userInfo:(NSDictionary *_Nullable)userInfo
+                             state:(OIDAuthState *)authState
+            refreshTokenParameters:(NSDictionary *_Nullable)refreshTokenParameters{
+    NSParameterAssert(authState);
+    NSParameterAssert(identifier);
+    if (authState == nil){
+        return nil;
     }
-    return self;
-}
-
-- (instancetype)initWithIdentifier:(NSString *)identifier state:(OIDAuthState *)authState{
+    if (identifier == nil){
+        return nil;
+    }
+    
     self = [super init];
     if(self){
-        NSParameterAssert(authState);
+        self.identifier = identifier;
+        self.userInfo = userInfo;
+        self.refreshTokenParameters = refreshTokenParameters;
         self.authState = authState;
-        self.identifier = identifier;
         self.authState.stateChangeDelegate = self;
+        self.pendingRequestsCount = 0;
     }
     return self;
 }
 
-- (void)getAccessTokenWithCompletion:(void (^)(NSString *accessToken, NSError *error))completion{
-    if(self.accessToken.length>0){
+- (void)getAccessTokenWithCompletionBlock:(void (^)(NSString * _Nullable accessToken, NSError * _Nullable error))completion{
+    self.pendingRequestsCount+=1;
+    MCHMakeWeakSelf;
+    [self.authState performActionWithFreshTokens:^(NSString * _Nullable accessToken, NSString * _Nullable idToken, NSError * _Nullable error) {
         if(completion){
-            completion(self.accessToken,nil);
+            completion(accessToken,error);
         }
-    }
-    else{
-        [self.authState performActionWithFreshTokens:^(NSString *_Nullable accessToken,
-                                                       NSString *_Nullable idToken,
-                                                       NSError *_Nullable error) {
-            if(completion){
-                completion(accessToken,error);
-            }
-        }];
-    }
+        weakSelf.pendingRequestsCount-=1;
+        [weakSelf authStateActionDidComplete];
+    } additionalRefreshParameters:self.refreshTokenParameters];
 }
 
 - (void)didChangeState:(OIDAuthState *)state{
-    [[NSNotificationCenter defaultCenter] postNotificationName:MCHAppAuthProviderDidChangeState object:self];
+    self.needsToCallStateDidChangeNotification = YES;
+    if (self.pendingRequestsCount <= 0) {
+        self.pendingRequestsCount = 0;
+        [self postStateDidChangeNotificationIfNeeded];
+    }
+}
+
+- (void)authStateActionDidComplete {
+    [self postStateDidChangeNotificationIfNeeded];
+}
+
+- (void)postStateDidChangeNotificationIfNeeded {
+    if (self.needsToCallStateDidChangeNotification) {
+        self.needsToCallStateDidChangeNotification = NO;
+        [[NSNotificationCenter defaultCenter] postNotificationName:MCHAppAuthProviderDidChangeState object:self];
+    }
 }
 
 @end

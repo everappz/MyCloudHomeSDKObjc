@@ -8,14 +8,19 @@
 
 #import "MCHUser.h"
 
+NSString * const MCHUserApiKeyIdentifier = @"sub";
+NSString * const MCHUserApiKeyEmail = @"email";
+
 @implementation MCHUser
 
-- (NSString *)identifier{
-    return [self.class stringForKey:@"sub" inDictionary:self.dictionary];
+- (NSString *_Nullable)identifier{
+    return [self.class stringForKey:MCHUserApiKeyIdentifier
+                       inDictionary:self.dictionary];
 }
 
-- (NSString *)email{
-    return [self.class stringForKey:@"email" inDictionary:self.dictionary];
+- (NSString *_Nullable)email{
+    return [self.class stringForKey:MCHUserApiKeyEmail
+                       inDictionary:self.dictionary];
 }
 
 @end

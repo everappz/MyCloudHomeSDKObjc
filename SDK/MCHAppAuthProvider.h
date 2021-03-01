@@ -16,14 +16,17 @@ extern NSString * const MCHAppAuthProviderDidChangeState;
 
 @interface MCHAppAuthProvider : NSObject
 
-- (instancetype)initWithIdentifier:(NSString *)identifier state:(OIDAuthState *)authState;
-- (instancetype)initWithIdentifier:(NSString *)identifier accessToken:(NSString *)accessToken;
+- (instancetype)initWithIdentifier:(NSString *)identifier
+                          userInfo:(NSDictionary *_Nullable)userInfo
+                             state:(OIDAuthState *)authState
+            refreshTokenParameters:(NSDictionary *_Nullable)refreshTokenParameters;
 
 @property(nonatomic, strong, readonly) OIDAuthState *authState;
-@property(nonatomic, copy, readonly) NSString *accessToken;
 @property(nonatomic, copy, readonly) NSString *identifier;
+@property(nonatomic, copy, readonly, nullable) NSDictionary *userInfo;
+@property(nonatomic, copy, readonly, nullable) NSDictionary *refreshTokenParameters;
 
-- (void)getAccessTokenWithCompletion:(void (^)(NSString *accessToken, NSError *error))completion;
+- (void)getAccessTokenWithCompletionBlock:(void (^)(NSString * _Nullable accessToken, NSError * _Nullable error))completion;
 
 @end
 

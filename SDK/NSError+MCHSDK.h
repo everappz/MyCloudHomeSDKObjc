@@ -31,6 +31,8 @@ extern  NSString * const MCHErrorDomain;
 
 + (instancetype)MCHErrorWithCode:(MCHErrorCode)errorCode statusCode:(NSInteger)statusCode;
 
+- (BOOL)MCH_isTooManyRequestsError;
+
 @end
 
 NS_ASSUME_NONNULL_END

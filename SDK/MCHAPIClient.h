@@ -35,7 +35,7 @@ typedef void(^MCHAPIClientURLCompletionBlock)(NSURL *_Nullable location, NSError
 
 - (instancetype)initWithInternalRequest:(id<MCHAPIClientCancellableRequest>)internalRequest;
 
-@property (nonatomic,strong, readonly)id<MCHAPIClientCancellableRequest> internalRequest;
+@property (nonatomic,strong,readonly)id<MCHAPIClientCancellableRequest> internalRequest;
 
 - (BOOL)isCancelled;
 
@@ -45,77 +45,76 @@ typedef void(^MCHAPIClientURLCompletionBlock)(NSURL *_Nullable location, NSError
 
 @interface MCHAPIClient : NSObject
 
-- (instancetype)initWithSessionConfiguration:(NSURLSessionConfiguration * _Nullable )configuration
-                       endpointConfiguration:(id<MCHEndpointConfiguration> _Nullable)endpointConfiguration
-                                authProvider:(MCHAppAuthProvider *_Nullable)authProvider
-                                 authZeroURL:(nullable NSURL *)authZeroURL;
+- (instancetype)initWithURLSessionConfiguration:(NSURLSessionConfiguration * _Nullable)URLSessionConfiguration
+                          endpointConfiguration:(id<MCHEndpointConfiguration> _Nullable)endpointConfiguration
+                                   authProvider:(MCHAppAuthProvider *_Nullable)authProvider;
 
-@property (nonatomic,strong)MCHAppAuthProvider *authProvider;
+- (void)updateAuthProvider:(MCHAppAuthProvider * _Nullable)authProvider;
 
-- (id<MCHAPIClientCancellableRequest> _Nullable)getEndpointConfigurationWithCompletion:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion;
+- (id<MCHAPIClientCancellableRequest> _Nullable)getEndpointConfigurationWithCompletionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion;
 
-- (id<MCHAPIClientCancellableRequest> _Nullable)getUserInfoWithCompletion:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion;
+- (id<MCHAPIClientCancellableRequest> _Nullable)getUserInfoWithCompletionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion;
 
-- (id<MCHAPIClientCancellableRequest> _Nullable)getDevicesForUserWithID:(NSString * _Nonnull)userID
-                                                         withCompletion:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion;
+- (id<MCHAPIClientCancellableRequest> _Nullable)getDevicesForUserWithID:(NSString *)userID
+                                                        completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion;
 
-- (id<MCHAPIClientCancellableRequest> _Nullable)getDeviceInfoWithID:(NSString * _Nonnull)deviceID
-                                                     withCompletion:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion;
+- (id<MCHAPIClientCancellableRequest> _Nullable)getDeviceInfoWithID:(NSString *)deviceID
+                                                    completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion;
 
-- (id<MCHAPIClientCancellableRequest> _Nullable)getFilesForDeviceWithURL:(NSURL * _Nonnull)proxyURL
-                                                                parentID:(NSString * _Nonnull)parentID
-                                                          withCompletion:(MCHAPIClientArrayCompletionBlock _Nullable)completion;
+- (id<MCHAPIClientCancellableRequest> _Nullable)getFilesForDeviceWithURL:(NSURL *)proxyURL
+                                                                parentID:(NSString *)parentID
+                                                         completionBlock:(MCHAPIClientArrayCompletionBlock _Nullable)completion;
 
 - (id<MCHAPIClientCancellableRequest> _Nullable)getFileInfoForDeviceWithURL:(NSURL *)proxyURL
                                                                      fileID:(NSString *)fileID
-                                                             withCompletion:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion;
+                                                            completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion;
 
 - (id<MCHAPIClientCancellableRequest> _Nullable)deleteFileForDeviceWithURL:(NSURL *)proxyURL
                                                                     fileID:(NSString *)fileID
-                                                            withCompletion:(MCHAPIClientErrorCompletionBlock _Nullable)completion;
+                                                           completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion;
 
 - (id<MCHAPIClientCancellableRequest> _Nullable)createFolderForDeviceWithURL:(NSURL *)proxyURL
                                                                     parentID:(NSString *)parentID
                                                                   folderName:(NSString *)folderName
-                                                              withCompletion:(MCHAPIClientErrorCompletionBlock _Nullable)completion;
+                                                             completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion;
 
 - (id<MCHAPIClientCancellableRequest> _Nullable)createFileForDeviceWithURL:(NSURL *)proxyURL
                                                                   parentID:(NSString *)parentID
                                                                   fileName:(NSString *)fileName
                                                               fileMIMEType:(NSString *)fileMIMEType
-                                                            withCompletion:(MCHAPIClientErrorCompletionBlock _Nullable)completion;
+                                                           completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion;
 
 - (id<MCHAPIClientCancellableRequest> _Nullable)renameFileForDeviceWithURL:(NSURL *)proxyURL
                                                                     fileID:(NSString *)fileID
                                                                newFileName:(NSString *)newFileName
-                                                            withCompletion:(MCHAPIClientErrorCompletionBlock _Nullable)completion;
+                                                           completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion;
 
 - (id<MCHAPIClientCancellableRequest> _Nullable)moveFileForDeviceWithURL:(NSURL *)proxyURL
                                                                   fileID:(NSString *)fileID
                                                              newParentID:(NSString *)newParentID
-                                                          withCompletion:(MCHAPIClientErrorCompletionBlock _Nullable)completion;
+                                                         completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion;
 
 - (id<MCHAPIClientCancellableRequest> _Nullable)getFileContentForDeviceWithURL:(NSURL *)proxyURL
                                                                         fileID:(NSString *)fileID
-                                                                    parameters:(NSDictionary *)additionalHeaders
-                                                                didReceiveData:(MCHAPIClientDidReceiveDataBlock)didReceiveData
-                                                            didReceiveResponse:(MCHAPIClientDidReceiveResponseBlock)didReceiveResponse
-                                                                    completion:(MCHAPIClientErrorCompletionBlock _Nullable)completion;
+                                                                    parameters:(NSDictionary *_Nullable)additionalHeaders
+                                                           didReceiveDataBlock:(MCHAPIClientDidReceiveDataBlock _Nullable)didReceiveData
+                                                       didReceiveResponseBlock:(MCHAPIClientDidReceiveResponseBlock _Nullable)didReceiveResponse
+                                                               completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion;
 
 - (id<MCHAPIClientCancellableRequest> _Nullable)downloadFileContentForDeviceWithURL:(NSURL *)proxyURL
                                                                              fileID:(NSString *)fileID
-                                                                      progressBlock:(MCHAPIClientProgressBlock)progressBlock
-                                                                    completionBlock:(MCHAPIClientURLCompletionBlock)downloadCompletionBlock;
+                                                                      progressBlock:(MCHAPIClientProgressBlock _Nullable)progressBlock
+                                                                    completionBlock:(MCHAPIClientURLCompletionBlock _Nullable)downloadCompletionBlock;
 
 - (id<MCHAPIClientCancellableRequest> _Nullable)getDirectURLForDeviceWithURL:(NSURL *)proxyURL
                                                                       fileID:(NSString *)fileID
-                                                                  completion:(MCHAPIClientURLCompletionBlock _Nullable)completion;
+                                                             completionBlock:(MCHAPIClientURLCompletionBlock _Nullable)completion;
 
 - (id<MCHAPIClientCancellableRequest> _Nullable)uploadFileContentSeparatelyForDeviceWithURL:(NSURL *)proxyURL
                                                                                      fileID:(NSString *)fileID
                                                                             localContentURL:(NSURL *)localContentURL
-                                                                              progressBlock:(MCHAPIClientProgressBlock)progressBlock
-                                                                            completionBlock:(MCHAPIClientErrorCompletionBlock)completionBlock;
+                                                                              progressBlock:(MCHAPIClientProgressBlock _Nullable)progressBlock
+                                                                            completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completionBlock;
 
 @end
 

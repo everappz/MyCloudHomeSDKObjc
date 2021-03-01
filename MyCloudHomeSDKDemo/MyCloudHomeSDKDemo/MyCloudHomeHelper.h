@@ -19,7 +19,6 @@ extern unsigned long long LSFileContentLengthUnknown;
 
 extern NSString * const MCHAuthDataKey;
 extern NSString * const MCHUserID;
-extern NSString * const MCHClientID;
 
 @interface MyCloudHomeHelper : NSObject
 

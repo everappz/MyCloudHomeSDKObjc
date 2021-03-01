@@ -29,22 +29,23 @@ typedef void (^MCHAppAuthManagerAuthorizationCallback)(OIDAuthState *_Nullable a
 
 + (void)setSharedManagerWithClientID:(NSString *)clientID
                         clientSecret:(NSString *)clientSecret
+                         redirectURI:(NSString *)redirectURI;
+
++ (void)setSharedManagerWithClientID:(NSString *)clientID
+                        clientSecret:(NSString *)clientSecret
                          redirectURI:(NSString *)redirectURI
                               scopes:(NSArray<NSString *>*)scopes
-                         authZeroURL:(nullable NSURL *)authZeroURL
       authorizationRequestParameters:(nullable NSDictionary<NSString *, NSString *> *)authorizationRequestAdditionalParameters
-             tokenExchangeParameters:(nullable NSDictionary<NSString *, NSString *> *)tokenExchangeAdditionalParameters;
+             tokenExchangeParameters:(nullable NSDictionary<NSString *, NSString *> *)tokenExchangeAdditionalParameters
+            refreshRequestParameters:(nullable NSDictionary<NSString *, NSString *> *)refreshRequestParameters;
 
 @property(nonatomic, copy, readonly) NSString *clientID;
 @property(nonatomic, copy, readonly) NSString *clientSecret;
 @property(nonatomic, copy, readonly) NSString *redirectURI;
 @property(nonatomic, strong, readonly) NSArray *scopes;
-@property(nonatomic, strong, readonly) NSURL *authZeroURL;
-
-+ (NSDictionary<NSString *, NSString *> *)defaultTokenExchangeParameters;
-+ (NSDictionary<NSString *, NSString *> *)defaultAuthorizationRequestParameters;
-+ (NSArray<NSString *> *)defaultScopes;
-+ (nullable NSURL *)defaultAuthZeroURL;
+@property(nonatomic, strong, readonly, nullable) NSDictionary<NSString *, NSString *> *authorizationRequestAdditionalParameters;
+@property(nonatomic, strong, readonly, nullable) NSDictionary<NSString *, NSString *> *tokenExchangeAdditionalParameters;
+@property(nonatomic, strong, readonly, nullable) NSDictionary<NSString *, NSString *> *refreshRequestParameters;
 
 + (instancetype)new NS_UNAVAILABLE;
 - (instancetype)init NS_UNAVAILABLE;

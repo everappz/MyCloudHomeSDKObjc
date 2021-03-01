@@ -26,6 +26,7 @@ typedef BOOL(^MCHAuthorizationUserAgentWebViewDecidePolicyBlock)(WKWebView *webV
 
 
 @implementation MCHAuthorizationUserAgentWebView
+
 - (instancetype)initWithWebView:(WKWebView *)webView
                     redirectURI:(NSURL *)redirectURI{
     self = [super init];
@@ -123,19 +124,27 @@ typedef BOOL(^MCHAuthorizationUserAgentWebViewDecidePolicyBlock)(WKWebView *webV
     if (NSFoundationVersionNumber >= NSFoundationVersionNumber_iOS_9_0) {
         NSSet *websiteDataTypes = [WKWebsiteDataStore allWebsiteDataTypes];
         NSDate *dateFrom = [NSDate dateWithTimeIntervalSince1970:0];
-        [[WKWebsiteDataStore defaultDataStore] removeDataOfTypes:websiteDataTypes modifiedSince:dateFrom completionHandler:^{}];
+        [[WKWebsiteDataStore defaultDataStore] removeDataOfTypes:websiteDataTypes
+                                                   modifiedSince:dateFrom
+                                               completionHandler:^{}];
     }
 }
 
 #pragma mark - WKNavigationDelegate Delegate
 
-- (void)webView:(WKWebView *)webView decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler{
+- (void)webView:(WKWebView *)webView
+decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse
+decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
+{
     if(decisionHandler){
         decisionHandler(WKNavigationResponsePolicyAllow);
     }
 }
 
-- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+- (void)webView:(WKWebView *)webView
+decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
+decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
+{
     if(self.webViewDecidePolicyBlock){
         BOOL result = self.webViewDecidePolicyBlock(webView,navigationAction);
         if(result){
@@ -156,17 +165,21 @@ typedef BOOL(^MCHAuthorizationUserAgentWebViewDecidePolicyBlock)(WKWebView *webV
     }
 }
 
-- (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(null_unspecified WKNavigation *)navigation{
+- (void)webView:(WKWebView *)webView
+didStartProvisionalNavigation:(null_unspecified WKNavigation *)navigation{
     if(self.webViewDidStartLoadingBlock){
         self.webViewDidStartLoadingBlock(webView);
     }
 }
 
-- (void)webView:(WKWebView *)webView didFinishNavigation:(null_unspecified WKNavigation *)navigation{
+- (void)webView:(WKWebView *)webView
+didFinishNavigation:(null_unspecified WKNavigation *)navigation{
     [self WKWebViewDidFinish:webView error:nil];
 }
 
-- (void)webView:(WKWebView *)webView didFailNavigation:(null_unspecified WKNavigation *)navigation withError:(NSError *)error{
+- (void)webView:(WKWebView *)webView
+didFailNavigation:(null_unspecified WKNavigation *)navigation
+      withError:(NSError *)error{
     [self WKWebViewDidFinish:webView error:error];
 }
 

@@ -21,7 +21,7 @@ unsigned long long LSFileContentLengthUnknown = -1;
 
 NSString * const MCHAuthDataKey = @"MCHAuthDataKey";
 NSString * const MCHUserID = @"MCHUserID";
-NSString * const MCHClientID = @"MCHClientID";
+NSString * const MCHUserEmail = @"MCHUserEmail";
 
 @implementation MyCloudHomeHelper
 
@@ -115,11 +115,12 @@ NSString * const MCHClientID = @"MCHClientID";
     return [[NSError alloc] initWithDomain:@"MyCloudHomeErrorDomain" code:-1 userInfo:nil];
 }
 
-+ (MCHAPIClient *)createClientWithAuthData:(NSDictionary *)authData{
++ (MCHAPIClient *)createClientWithAuthData:(NSDictionary *)clientAuthData{
     MCHAPIClient *apiClient = nil;
-    id authDataObj = [authData objectForKey:MCHAuthDataKey];
-    NSString *userID = [authData objectForKey:MCHUserID];
-    if([authDataObj isKindOfClass:[NSData class]]){
+    id authDataObj = [clientAuthData objectForKey:MCHAuthDataKey];
+    NSString *userID = [clientAuthData objectForKey:MCHUserID];
+    if([authDataObj isKindOfClass:[NSData class]]
+       && userID.length > 0){
         NSData *authData = (NSData *)authDataObj;
         NSParameterAssert(authData.length>0);
         if(authData.length>0){
@@ -127,7 +128,12 @@ NSString * const MCHClientID = @"MCHClientID";
             NSParameterAssert([obj isKindOfClass:[OIDAuthState class]]);
             if([obj isKindOfClass:[OIDAuthState class]]){
                 OIDAuthState *authState = (OIDAuthState *)obj;
-                apiClient = [[MCHAPIClientCache sharedCache] clientForIdentifier:userID authState:authState];
+                apiClient = [[MCHAPIClientCache sharedCache] clientForIdentifier:userID];
+                if (apiClient == nil) {
+                    apiClient = [[MCHAPIClientCache sharedCache] createClientForIdentifier:userID
+                                                                                  userInfo:nil
+                                                                                 authState:authState];
+                }
             }
         }
     }

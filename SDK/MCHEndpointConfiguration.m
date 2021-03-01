@@ -70,11 +70,10 @@
 
 @implementation MCHEndpointConfigurationBuilder
 
-+ (id<MCHEndpointConfiguration>)configurationWithDictionary:(NSDictionary * _Nonnull)dictionary
-                                                authZeroURL:(NSURL * _Nullable)authZeroURL{
++ (id<MCHEndpointConfiguration>)configurationWithDictionary:(NSDictionary * _Nonnull)dictionary{
     MCHEndpointServerConfigurationModel *endPointConfigurationServerModel =
     [[MCHEndpointServerConfigurationModel alloc] initWithDictionary:[dictionary objectForKey:kMCHData]];
-    NSURL *authURL = authZeroURL?authZeroURL:endPointConfigurationServerModel.authZeroURL;
+    NSURL *authURL = endPointConfigurationServerModel.authZeroURL;
     NSURL *serviceDeviceURL = endPointConfigurationServerModel.serviceDeviceURL;
     id<MCHEndpointConfiguration> endPointConfiguration =
     [[MCHEndpointConfigurationImplementation alloc] initWithAuthZeroURL:authURL

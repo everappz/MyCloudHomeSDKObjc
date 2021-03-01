@@ -10,6 +10,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+extern NSString * const MCHUserApiKeyIdentifier;
+extern NSString * const MCHUserApiKeyEmail;
+
 @interface MCHUser : MCHObject
 
 - (NSString * _Nullable)identifier;

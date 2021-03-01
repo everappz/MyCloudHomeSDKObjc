@@ -22,8 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface MCHEndpointConfigurationBuilder : NSObject
 
-+ (id<MCHEndpointConfiguration>)configurationWithDictionary:(NSDictionary * _Nonnull)dictionary
-                                                authZeroURL:(NSURL * _Nullable)authZeroURL;
++ (id<MCHEndpointConfiguration>)configurationWithDictionary:(NSDictionary * _Nonnull)dictionary;
 
 @end
 

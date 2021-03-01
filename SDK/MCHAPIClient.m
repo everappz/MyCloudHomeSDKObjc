@@ -12,7 +12,10 @@
 #import "MCHEndpointConfiguration.h"
 #import "NSError+MCHSDK.h"
 #import "MCHFile.h"
+#import "MCHUser.h"
+#import "NSError+MCHSDK.h"
 
+NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
 
 typedef void(^MCHAPIClientEndpointAndAccessTokenCompletionBlock)(id<MCHEndpointConfiguration> _Nullable endpointConfiguration,
                                                                  NSString * _Nullable accessToken,
@@ -23,12 +26,12 @@ typedef void(^MCHAPIClientEndpointAndAccessTokenCompletionBlock)(id<MCHEndpointC
 }
 
 @property (nonatomic,strong)id<MCHAPIClientCancellableRequest> internalRequest;
-@property (nonatomic,copy)MCHAPIClientDidReceiveDataBlock didReceiveDataBlock;
-@property (nonatomic,copy)MCHAPIClientDidReceiveResponseBlock didReceiveResponseBlock;
-@property (nonatomic,copy)MCHAPIClientErrorCompletionBlock errorCompletionBlock;
-@property (nonatomic,copy)MCHAPIClientProgressBlock progressBlock;
-@property (nonatomic,copy)MCHAPIClientURLCompletionBlock downloadCompletionBlock;
-@property (nonatomic,strong)NSNumber *totalContentSize;
+@property (nonatomic,copy,nullable)MCHAPIClientDidReceiveDataBlock didReceiveDataBlock;
+@property (nonatomic,copy,nullable)MCHAPIClientDidReceiveResponseBlock didReceiveResponseBlock;
+@property (nonatomic,copy,nullable)MCHAPIClientErrorCompletionBlock errorCompletionBlock;
+@property (nonatomic,copy,nullable)MCHAPIClientProgressBlock progressBlock;
+@property (nonatomic,copy,nullable)MCHAPIClientURLCompletionBlock downloadCompletionBlock;
+@property (nonatomic,strong,nullable)NSNumber *totalContentSize;
 @property (nonatomic,assign)NSUInteger URLTaskIdentifier;
 
 @end
@@ -44,10 +47,10 @@ NSURLSessionDownloadDelegate
 
 @property (nonatomic,strong)NSOperationQueue *callbackQueue;
 @property (nonatomic,strong)NSURLSession *session;
-@property (nonatomic,strong)id<MCHEndpointConfiguration> endpointConfiguration;
-@property (nonatomic,strong)NSDictionary *userInfo;
+@property (nonatomic,strong,nullable)id<MCHEndpointConfiguration> endpointConfiguration;
+@property (nonatomic,strong,nullable)MCHAppAuthProvider *authProvider;
+@property (nonatomic,strong,nullable)NSDictionary *userInfo;
 @property (nonatomic,strong)NSMutableArray<MCHAPIClientCancellableRequest> *cancellableRequests;
-@property (nonatomic,strong,nullable)NSURL *authZeroURL;
 
 @end
 
@@ -56,15 +59,14 @@ NSURLSessionDownloadDelegate
 @implementation MCHAPIClient
 
 
-- (instancetype)initWithSessionConfiguration:(NSURLSessionConfiguration * _Nullable )configuration
-                       endpointConfiguration:(id<MCHEndpointConfiguration> _Nullable)endpointConfiguration
-                                authProvider:(MCHAppAuthProvider *_Nullable)authProvider
-                                 authZeroURL:(nullable NSURL *)authZeroURL{
+- (instancetype)initWithURLSessionConfiguration:(NSURLSessionConfiguration * _Nullable)URLSessionConfiguration
+                          endpointConfiguration:(id<MCHEndpointConfiguration> _Nullable)endpointConfiguration
+                                   authProvider:(MCHAppAuthProvider *_Nullable)authProvider{
     
     self = [super init];
     if(self){
-        NSURLSessionConfiguration *resultConfiguration = configuration;
-        if(resultConfiguration==nil){
+        NSURLSessionConfiguration *resultConfiguration = URLSessionConfiguration;
+        if(resultConfiguration == nil){
             resultConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
             resultConfiguration.requestCachePolicy = NSURLRequestUseProtocolCachePolicy;
             resultConfiguration.allowsCellularAccess = YES;
@@ -78,24 +80,53 @@ NSURLSessionDownloadDelegate
                                                 delegateQueue:self.callbackQueue];
         self.endpointConfiguration = endpointConfiguration;
         self.authProvider = authProvider;
-        self.authZeroURL = authZeroURL;
+        self.userInfo = nil;
         self.cancellableRequests = [NSMutableArray<MCHAPIClientCancellableRequest> new];
     }
     return self;
 }
 
-#pragma mark - Public
-
-- (void)setAuthProvider:(MCHAppAuthProvider *)authProvider{
-    _authProvider = authProvider;
-    self.userInfo = nil;
+- (void)updateAuthProvider:(MCHAppAuthProvider *_Nullable)authProvider{
+    @synchronized (self) {
+        self.authProvider = authProvider;
+    }
 }
 
-- (id<MCHAPIClientCancellableRequest>)getEndpointConfigurationWithCompletion:(MCHAPIClientDictionaryCompletionBlock)completion{
+#pragma mark - Public
+
+- (id<MCHAPIClientCancellableRequest>)getEndpointConfigurationWithCompletionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    NSMutableURLRequest *request = [self GETRequestWithURL:[NSURL URLWithString:kMCHClientConfigURL] contentType:kMCHContentTypeApplicationJSON accessToken:nil];
+    MCHAPIClientDictionaryCompletionBlock resultCompletion = ^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
+        MCHMakeStrongSelfAndReturnIfNil;
+        [strongSelf removeCancellableRequest:weak_clientRequest];
+        if (completion){
+            completion(dictionary,error);
+        }
+    };
+    id<MCHAPIClientCancellableRequest> internalRequest =
+    (id<MCHAPIClientCancellableRequest>)[self _getEndpointConfigurationWithCompletionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
+        if (error.MCH_isTooManyRequestsError) {
+            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+                weak_clientRequest.internalRequest = [weakSelf _getEndpointConfigurationWithCompletionBlock:resultCompletion];
+            }];
+        }
+        else {
+            resultCompletion(dictionary,error);
+        }
+    }];
+    clientRequest.internalRequest = internalRequest;
+    return clientRequest;
+}
+
+- (id<MCHAPIClientCancellableRequest>)_getEndpointConfigurationWithCompletionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
+    MCHMakeWeakSelf;
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHMakeWeakReference(clientRequest);
+    NSMutableURLRequest *request = [self GETRequestWithURL:[NSURL URLWithString:kMCHClientConfigURL]
+                                               contentType:kMCHContentTypeApplicationJSON
+                                               accessToken:nil];
     [MCHAPIClient printRequest:request];
     NSURLSessionDataTask *task = [self dataTaskWithRequest:request
                                          completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
@@ -111,17 +142,50 @@ NSURLSessionDownloadDelegate
     return clientRequest;
 }
 
-- (id<MCHAPIClientCancellableRequest>)getUserInfoWithCompletion:(MCHAPIClientDictionaryCompletionBlock _Nullable )completion{
-    if([self.userInfo count] > 0){
+- (id<MCHAPIClientCancellableRequest>)getUserInfoWithCompletionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
+    MCHMakeWeakSelf;
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHMakeWeakReference(clientRequest);
+    MCHAPIClientDictionaryCompletionBlock resultCompletion = ^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
+        MCHMakeStrongSelfAndReturnIfNil;
+        [strongSelf removeCancellableRequest:weak_clientRequest];
+        if (completion){
+            completion(dictionary,error);
+        }
+    };
+    id<MCHAPIClientCancellableRequest> internalRequest =
+    (id<MCHAPIClientCancellableRequest>)[self _getUserInfoWithCompletionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
+        if (error.MCH_isTooManyRequestsError) {
+            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+                weak_clientRequest.internalRequest = [weakSelf _getUserInfoWithCompletionBlock:resultCompletion];
+            }];
+        }
+        else {
+            resultCompletion(dictionary,error);
+        }
+    }];
+    clientRequest.internalRequest = internalRequest;
+    return clientRequest;
+}
+
+- (id<MCHAPIClientCancellableRequest>)_getUserInfoWithCompletionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
+    NSDictionary *userInfo = nil;
+    @synchronized (self) {
+        userInfo = self.userInfo;
+    }
+    if(userInfo){
         if(completion){
-            completion(self.userInfo,nil);
+            completion(userInfo,nil);
         }
         return nil;
     }
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest =
+    [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
+     ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error)
+     {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -131,20 +195,27 @@ NSURLSessionDownloadDelegate
                                                 error:error];
         }
         else{
-            NSMutableURLRequest *request = [strongSelf GETRequestWithURL:[[endpointConfiguration authZeroURL] URLByAppendingPathComponent:kMCHUserInfo]
+            NSMutableURLRequest *request = [strongSelf GETRequestWithURL:[endpointConfiguration.authZeroURL URLByAppendingPathComponent:kMCHUserInfo]
                                                              contentType:kMCHContentTypeApplicationJSON
                                                              accessToken:accessToken];
             [MCHAPIClient printRequest:request];
             NSURLSessionDataTask *task = [strongSelf dataTaskWithRequest:request
                                                        completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
                 [strongSelf removeCancellableRequest:weak_clientRequest];
-                NSDictionary *userInfo = [MCHAPIClient processDictionaryCompletion:completion
-                                                                          withData:data
-                                                                          response:response
-                                                                             error:error];
-                if(userInfo.count > 0){
-                    strongSelf.userInfo = userInfo;
-                }
+                
+                MCHAPIClientDictionaryCompletionBlock resultCompletion =
+                ^(NSDictionary * _Nullable resultDictionary, NSError * _Nullable resultError) {
+                    @synchronized (strongSelf) {
+                        strongSelf.userInfo = resultDictionary;
+                    }
+                    if (completion) {
+                        completion (resultDictionary, resultError);
+                    }
+                };
+                [MCHAPIClient processDictionaryCompletion:resultCompletion
+                                                 withData:data
+                                                 response:response
+                                                    error:error];
             }];
             weak_clientRequest.internalRequest = (id<MCHAPIClientCancellableRequest>)task;
             [task resume];
@@ -154,12 +225,50 @@ NSURLSessionDownloadDelegate
     return clientRequest;
 }
 
-- (id<MCHAPIClientCancellableRequest>)getDevicesForUserWithID:(NSString * _Nonnull)userID
-                                               withCompletion:(MCHAPIClientDictionaryCompletionBlock _Nullable )completion{
+- (id<MCHAPIClientCancellableRequest>)getDevicesForUserWithID:(NSString *)userID
+                                              completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    MCHAPIClientDictionaryCompletionBlock resultCompletion = ^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
+        MCHMakeStrongSelfAndReturnIfNil;
+        [strongSelf removeCancellableRequest:weak_clientRequest];
+        if (completion){
+            completion(dictionary,error);
+        }
+    };
+    id<MCHAPIClientCancellableRequest> internalRequest =
+    (id<MCHAPIClientCancellableRequest>)[self _getDevicesForUserWithID:userID
+                                                       completionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
+        if (error.MCH_isTooManyRequestsError) {
+            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+                weak_clientRequest.internalRequest = [weakSelf _getDevicesForUserWithID:userID
+                                                                        completionBlock:resultCompletion];
+            }];
+        }
+        else {
+            resultCompletion(dictionary,error);
+        }
+    }];
+    clientRequest.internalRequest = internalRequest;
+    return clientRequest;
+}
+
+- (id<MCHAPIClientCancellableRequest>)_getDevicesForUserWithID:(NSString *)userID
+                                               completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
+    NSParameterAssert(userID);
+    if (userID == nil) {
+        if (completion) {
+            completion(nil,[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]);
+        }
+        return nil;
+    }
+    MCHMakeWeakSelf;
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHMakeWeakReference(clientRequest);
+    id<MCHAPIClientCancellableRequest> tokenRequest =
+    [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
+     ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error){
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -191,11 +300,51 @@ NSURLSessionDownloadDelegate
 }
 
 - (id<MCHAPIClientCancellableRequest>)getDeviceInfoWithID:(NSString *)deviceID
-                                           withCompletion:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
+                                          completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    MCHAPIClientDictionaryCompletionBlock resultCompletion = ^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
+        MCHMakeStrongSelfAndReturnIfNil;
+        [strongSelf removeCancellableRequest:weak_clientRequest];
+        if (completion){
+            completion(dictionary,error);
+        }
+    };
+    id<MCHAPIClientCancellableRequest> internalRequest =
+    (id<MCHAPIClientCancellableRequest>)[self _getDeviceInfoWithID:deviceID
+                                                   completionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
+        if (error.MCH_isTooManyRequestsError) {
+            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+                weak_clientRequest.internalRequest = [weakSelf _getDeviceInfoWithID:deviceID
+                                                                    completionBlock:resultCompletion];
+            }];
+        }
+        else {
+            resultCompletion(dictionary,error);
+        }
+    }];
+    clientRequest.internalRequest = internalRequest;
+    return clientRequest;
+}
+
+- (id<MCHAPIClientCancellableRequest>)_getDeviceInfoWithID:(NSString *)deviceID
+                                           completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
+    NSParameterAssert(deviceID);
+    if (deviceID == nil) {
+        if (completion) {
+            completion(nil,[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]);
+        }
+        return nil;
+    }
+    NSParameterAssert(deviceID);
+    MCHMakeWeakSelf;
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHMakeWeakReference(clientRequest);
+    id<MCHAPIClientCancellableRequest> tokenRequest =
+    [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
+     ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error)
+     {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -228,32 +377,75 @@ NSURLSessionDownloadDelegate
 
 - (id<MCHAPIClientCancellableRequest>)getFilesForDeviceWithURL:(NSURL *)proxyURL
                                                       parentID:(NSString *)parentID
-                                                withCompletion:(MCHAPIClientArrayCompletionBlock _Nullable)completion{
+                                               completionBlock:(MCHAPIClientArrayCompletionBlock _Nullable)completion{
+    MCHMakeWeakSelf;
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHMakeWeakReference(clientRequest);
+    MCHAPIClientArrayCompletionBlock resultCompletion = ^(NSArray<NSDictionary *> * _Nullable array, NSError * _Nullable error) {
+        MCHMakeStrongSelfAndReturnIfNil;
+        [strongSelf removeCancellableRequest:weak_clientRequest];
+        if (completion){
+            completion(array,error);
+        }
+    };
+    id<MCHAPIClientCancellableRequest> internalRequest =
+    (id<MCHAPIClientCancellableRequest>)[self _getFilesForDeviceWithURL:proxyURL
+                                                               parentID:parentID
+                                                        completionBlock:^(NSArray<NSDictionary *> * _Nullable array, NSError * _Nullable error) {
+        if (error.MCH_isTooManyRequestsError) {
+            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+                weak_clientRequest.internalRequest = [weakSelf _getFilesForDeviceWithURL:proxyURL
+                                                                                parentID:parentID
+                                                                         completionBlock:resultCompletion];
+            }];
+        }
+        else {
+            resultCompletion(array,error);
+        }
+    }];
+    clientRequest.internalRequest = internalRequest;
+    return clientRequest;
+}
+
+- (id<MCHAPIClientCancellableRequest>)_getFilesForDeviceWithURL:(NSURL *)proxyURL
+                                                       parentID:(NSString *)parentID
+                                                completionBlock:(MCHAPIClientArrayCompletionBlock _Nullable)completion{
+    NSParameterAssert(proxyURL);
+    NSParameterAssert(parentID);
+    if (proxyURL == nil || parentID == nil) {
+        if (completion) {
+            completion(nil,[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]);
+        }
+        return nil;
+    }
+    
     NSMutableArray *resultFiles = [NSMutableArray new];
     return [self getFilesForDeviceWithURL:proxyURL
                                  parentID:parentID
                                 pageToken:nil
                               resultFiles:resultFiles
-                           withCompletion:completion];
+                          completionBlock:completion];
 }
 
 - (id<MCHAPIClientCancellableRequest>)getFilesForDeviceWithURL:(NSURL *)proxyURL
                                                       parentID:(NSString *)parentID
-                                                     pageToken:(NSString *)pageToken
+                                                     pageToken:(NSString *_Nullable)pageToken
                                                    resultFiles:(NSMutableArray *)resultFiles
-                                                withCompletion:(MCHAPIClientArrayCompletionBlock _Nullable)completion{
-    MCHMakeWeakSelf;
+                                               completionBlock:(MCHAPIClientArrayCompletionBlock _Nullable)completion{
     NSParameterAssert(proxyURL);
     NSParameterAssert(parentID);
-    if(proxyURL==nil || parentID==nil){
-        if(completion){
+    if (proxyURL == nil || parentID == nil) {
+        if (completion) {
             completion(nil,[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]);
         }
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHMakeWeakSelf;
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest =
+    [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
+     ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -262,9 +454,16 @@ NSURLSessionDownloadDelegate
             }
         }
         else{
-            NSString *urlString = [NSString stringWithFormat:@"%@?%@=%@&%@=%@",[proxyURL URLByAppendingPathComponent:kMCHSdkV2FilesSearchParents],kMCHIds,parentID,kMCHLimit,@(kMCHDefaultLimit)];
+            NSString *urlString = [NSString stringWithFormat:@"%@?%@=%@&%@=%@",
+                                   [proxyURL URLByAppendingPathComponent:kMCHSdkV2FilesSearchParents],
+                                   kMCHIds,
+                                   parentID,
+                                   kMCHLimit,
+                                   @(kMCHDefaultLimit)];
             if(pageToken.length>0){
-                urlString = [urlString stringByAppendingFormat:@"&%@=%@",kMCHPageToken,pageToken];
+                urlString = [urlString stringByAppendingFormat:@"&%@=%@",
+                             kMCHPageToken,
+                             pageToken];
             }
             NSURL *requestURL = [NSURL URLWithString:urlString];
             NSMutableURLRequest *request = [strongSelf GETRequestWithURL:requestURL
@@ -290,7 +489,7 @@ NSURLSessionDownloadDelegate
                                                                                                          parentID:parentID
                                                                                                         pageToken:pageToken
                                                                                                       resultFiles:resultFiles
-                                                                                                   withCompletion:completion];
+                                                                                                  completionBlock:completion];
                         weak_clientRequest.internalRequest = (id<MCHAPIClientCancellableRequest>)nextPageRequest;
                     }
                     else{
@@ -318,7 +517,39 @@ NSURLSessionDownloadDelegate
 
 - (id<MCHAPIClientCancellableRequest>)getFileInfoForDeviceWithURL:(NSURL *)proxyURL
                                                            fileID:(NSString *)fileID
-                                                   withCompletion:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
+                                                  completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
+    MCHMakeWeakSelf;
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHMakeWeakReference(clientRequest);
+    MCHAPIClientDictionaryCompletionBlock resultCompletion = ^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
+        MCHMakeStrongSelfAndReturnIfNil;
+        [strongSelf removeCancellableRequest:weak_clientRequest];
+        if (completion){
+            completion(dictionary,error);
+        }
+    };
+    id<MCHAPIClientCancellableRequest> internalRequest =
+    (id<MCHAPIClientCancellableRequest>)[self _getFileInfoForDeviceWithURL:proxyURL
+                                                                    fileID:fileID
+                                                           completionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
+        if (error.MCH_isTooManyRequestsError) {
+            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+                weak_clientRequest.internalRequest = [weakSelf _getFileInfoForDeviceWithURL:proxyURL
+                                                                                     fileID:fileID
+                                                                            completionBlock:resultCompletion];
+            }];
+        }
+        else {
+            resultCompletion(dictionary,error);
+        }
+    }];
+    clientRequest.internalRequest = internalRequest;
+    return clientRequest;
+}
+
+- (id<MCHAPIClientCancellableRequest>)_getFileInfoForDeviceWithURL:(NSURL *)proxyURL
+                                                            fileID:(NSString *)fileID
+                                                   completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
     NSParameterAssert(proxyURL);
     NSParameterAssert(fileID);
@@ -329,9 +560,11 @@ NSURLSessionDownloadDelegate
                                             error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest =
+    [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
+     ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -364,7 +597,39 @@ NSURLSessionDownloadDelegate
 
 - (id<MCHAPIClientCancellableRequest>)deleteFileForDeviceWithURL:(NSURL *)proxyURL
                                                           fileID:(NSString *)fileID
-                                                  withCompletion:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
+                                                 completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
+    MCHMakeWeakSelf;
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHMakeWeakReference(clientRequest);
+    MCHAPIClientErrorCompletionBlock resultCompletion = ^(NSError * _Nullable error) {
+        MCHMakeStrongSelfAndReturnIfNil;
+        [strongSelf removeCancellableRequest:weak_clientRequest];
+        if (completion){
+            completion(error);
+        }
+    };
+    id<MCHAPIClientCancellableRequest> internalRequest =
+    (id<MCHAPIClientCancellableRequest>)[self _deleteFileForDeviceWithURL:proxyURL
+                                                                   fileID:fileID
+                                                          completionBlock:^(NSError * _Nullable error) {
+        if (error.MCH_isTooManyRequestsError) {
+            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+                weak_clientRequest.internalRequest = [weakSelf _deleteFileForDeviceWithURL:proxyURL
+                                                                                    fileID:fileID
+                                                                           completionBlock:resultCompletion];
+            }];
+        }
+        else {
+            resultCompletion(error);
+        }
+    }];
+    clientRequest.internalRequest = internalRequest;
+    return clientRequest;
+}
+
+- (id<MCHAPIClientCancellableRequest>)_deleteFileForDeviceWithURL:(NSURL *)proxyURL
+                                                           fileID:(NSString *)fileID
+                                                  completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
     NSParameterAssert(proxyURL);
     NSParameterAssert(fileID);
@@ -374,9 +639,11 @@ NSURLSessionDownloadDelegate
                                        error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest =
+    [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
+     ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -408,43 +675,85 @@ NSURLSessionDownloadDelegate
 - (id<MCHAPIClientCancellableRequest>)createFolderForDeviceWithURL:(NSURL *)proxyURL
                                                           parentID:(NSString *)parentID
                                                         folderName:(NSString *)folderName
-                                                    withCompletion:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
+                                                   completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
     return [self createItemForDeviceWithURL:proxyURL
                                    parentID:parentID
                                    itemName:folderName
                                itemMIMEType:kMCHMIMETypeFolder
-                             withCompletion:completion];
+                            completionBlock:completion];
 }
 
 - (id<MCHAPIClientCancellableRequest>)createFileForDeviceWithURL:(NSURL *)proxyURL
                                                         parentID:(NSString *)parentID
                                                         fileName:(NSString *)fileName
                                                     fileMIMEType:(NSString *)fileMIMEType
-                                                  withCompletion:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
+                                                 completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
     return [self createItemForDeviceWithURL:proxyURL
                                    parentID:parentID
                                    itemName:fileName
                                itemMIMEType:fileMIMEType
-                             withCompletion:completion];
+                            completionBlock:completion];
 }
 
 - (id<MCHAPIClientCancellableRequest>)createItemForDeviceWithURL:(NSURL *)proxyURL
                                                         parentID:(NSString *)parentID
                                                         itemName:(NSString *)itemName
                                                     itemMIMEType:(NSString *)itemMIMEType
-                                                  withCompletion:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
+                                                 completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
+    MCHMakeWeakSelf;
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHMakeWeakReference(clientRequest);
+    MCHAPIClientErrorCompletionBlock resultCompletion = ^(NSError * _Nullable error) {
+        MCHMakeStrongSelfAndReturnIfNil;
+        [strongSelf removeCancellableRequest:weak_clientRequest];
+        if (completion){
+            completion(error);
+        }
+    };
+    id<MCHAPIClientCancellableRequest> internalRequest =
+    (id<MCHAPIClientCancellableRequest>)[self _createItemForDeviceWithURL:proxyURL
+                                                                 parentID:parentID
+                                                                 itemName:itemName
+                                                             itemMIMEType:itemMIMEType
+                                                          completionBlock:^(NSError * _Nullable error) {
+        if (error.MCH_isTooManyRequestsError) {
+            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+                weak_clientRequest.internalRequest = [weakSelf _createItemForDeviceWithURL:proxyURL
+                                                                                  parentID:parentID
+                                                                                  itemName:itemName
+                                                                              itemMIMEType:itemMIMEType
+                                                                           completionBlock:resultCompletion];
+            }];
+        }
+        else {
+            resultCompletion(error);
+        }
+    }];
+    clientRequest.internalRequest = internalRequest;
+    return clientRequest;
+}
+
+- (id<MCHAPIClientCancellableRequest>)_createItemForDeviceWithURL:(NSURL *)proxyURL
+                                                         parentID:(NSString *)parentID
+                                                         itemName:(NSString *)itemName
+                                                     itemMIMEType:(NSString *)itemMIMEType
+                                                  completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
     NSParameterAssert(proxyURL);
     NSParameterAssert(parentID);
-    if(proxyURL==nil || parentID==nil){
+    NSParameterAssert(itemName);
+    NSParameterAssert(itemMIMEType);
+    if(proxyURL==nil || parentID==nil || itemName==nil || itemMIMEType==nil){
         [MCHAPIClient processErrorCompletion:completion
                                     response:nil
                                        error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest =
+    [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
+     ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -455,7 +764,9 @@ NSURLSessionDownloadDelegate
         else{
             NSURL *requestURL = [proxyURL URLByAppendingPathComponent:kMCHSdkV2Files];
             NSString *boundary = [MCHAPIClient createMultipartFormBoundary];
-            NSString *contentType = [NSString stringWithFormat:@"%@;boundary=%@",kMCHContentTypeMultipartRelated,boundary];
+            NSString *contentType = [NSString stringWithFormat:@"%@;boundary=%@",
+                                     kMCHContentTypeMultipartRelated,
+                                     boundary];
             NSMutableURLRequest *request = [strongSelf POSTRequestWithURL:requestURL
                                                               contentType:contentType
                                                               accessToken:accessToken];
@@ -489,29 +800,64 @@ NSURLSessionDownloadDelegate
 - (id<MCHAPIClientCancellableRequest>)renameFileForDeviceWithURL:(NSURL *)proxyURL
                                                           fileID:(NSString *)fileID
                                                      newFileName:(NSString *)newFileName
-                                                  withCompletion:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
+                                                 completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
     NSDictionary *parameters = @{@"name":newFileName};
     return [self patchFileForDeviceWithURL:proxyURL
                                     fileID:fileID
                                 parameters:parameters
-                            withCompletion:completion];
+                           completionBlock:completion];
 }
 
 - (id<MCHAPIClientCancellableRequest>)moveFileForDeviceWithURL:(NSURL *)proxyURL
                                                         fileID:(NSString *)fileID
                                                    newParentID:(NSString *)newParentID
-                                                withCompletion:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
+                                               completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
     NSDictionary *parameters = @{@"parentID":newParentID};
     return [self patchFileForDeviceWithURL:proxyURL
                                     fileID:fileID
                                 parameters:parameters
-                            withCompletion:completion];
+                           completionBlock:completion];
 }
 
 - (id<MCHAPIClientCancellableRequest>)patchFileForDeviceWithURL:(NSURL *)proxyURL
                                                          fileID:(NSString *)fileID
                                                      parameters:(NSDictionary<NSString *,NSString *> *)parameters
-                                                 withCompletion:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
+                                                completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
+    MCHMakeWeakSelf;
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHMakeWeakReference(clientRequest);
+    MCHAPIClientErrorCompletionBlock resultCompletion = ^(NSError * _Nullable error) {
+        MCHMakeStrongSelfAndReturnIfNil;
+        [strongSelf removeCancellableRequest:weak_clientRequest];
+        if (completion){
+            completion(error);
+        }
+    };
+    id<MCHAPIClientCancellableRequest> internalRequest =
+    (id<MCHAPIClientCancellableRequest>)[self _patchFileForDeviceWithURL:proxyURL
+                                                                  fileID:fileID
+                                                              parameters:parameters
+                                                         completionBlock:^(NSError * _Nullable error) {
+        if (error.MCH_isTooManyRequestsError) {
+            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+                weak_clientRequest.internalRequest = [weakSelf _patchFileForDeviceWithURL:proxyURL
+                                                                                   fileID:fileID
+                                                                               parameters:parameters
+                                                                          completionBlock:resultCompletion];
+            }];
+        }
+        else {
+            resultCompletion(error);
+        }
+    }];
+    clientRequest.internalRequest = internalRequest;
+    return clientRequest;
+}
+
+- (id<MCHAPIClientCancellableRequest>)_patchFileForDeviceWithURL:(NSURL *)proxyURL
+                                                          fileID:(NSString *)fileID
+                                                      parameters:(NSDictionary<NSString *,NSString *> *)parameters
+                                                 completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
     NSParameterAssert(proxyURL);
     NSParameterAssert(fileID);
@@ -522,9 +868,11 @@ NSURLSessionDownloadDelegate
                                        error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest =
+    [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
+     ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -559,9 +907,9 @@ NSURLSessionDownloadDelegate
 - (id<MCHAPIClientCancellableRequest>)getFileContentForDeviceWithURL:(NSURL *)proxyURL
                                                               fileID:(NSString *)fileID
                                                           parameters:(NSDictionary *)additionalHeaders
-                                                      didReceiveData:(MCHAPIClientDidReceiveDataBlock)didReceiveData
-                                                  didReceiveResponse:(MCHAPIClientDidReceiveResponseBlock)didReceiveResponse
-                                                          completion:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
+                                                 didReceiveDataBlock:(MCHAPIClientDidReceiveDataBlock _Nullable)didReceiveData
+                                             didReceiveResponseBlock:(MCHAPIClientDidReceiveResponseBlock _Nullable)didReceiveResponse
+                                                     completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
     NSParameterAssert(proxyURL);
     NSParameterAssert(fileID);
@@ -571,12 +919,14 @@ NSURLSessionDownloadDelegate
                                        error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     clientRequest.didReceiveDataBlock = didReceiveData;
     clientRequest.didReceiveResponseBlock = didReceiveResponse;
     clientRequest.errorCompletionBlock = completion;
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest =
+    [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
+     ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -604,7 +954,39 @@ NSURLSessionDownloadDelegate
 
 - (id<MCHAPIClientCancellableRequest>)getDirectURLForDeviceWithURL:(NSURL *)proxyURL
                                                             fileID:(NSString *)fileID
-                                                        completion:(MCHAPIClientURLCompletionBlock _Nullable)completion{
+                                                   completionBlock:(MCHAPIClientURLCompletionBlock _Nullable)completion{
+    MCHMakeWeakSelf;
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHMakeWeakReference(clientRequest);
+    MCHAPIClientURLCompletionBlock resultCompletion = ^(NSURL *_Nullable location, NSError * _Nullable error) {
+        MCHMakeStrongSelfAndReturnIfNil;
+        [strongSelf removeCancellableRequest:weak_clientRequest];
+        if (completion){
+            completion(location,error);
+        }
+    };
+    id<MCHAPIClientCancellableRequest> internalRequest =
+    (id<MCHAPIClientCancellableRequest>)[self _getDirectURLForDeviceWithURL:proxyURL
+                                                                     fileID:fileID
+                                                            completionBlock:^(NSURL *_Nullable location, NSError * _Nullable error) {
+        if (error.MCH_isTooManyRequestsError) {
+            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+                weak_clientRequest.internalRequest = [weakSelf _getDirectURLForDeviceWithURL:proxyURL
+                                                                                      fileID:fileID
+                                                                             completionBlock:resultCompletion];
+            }];
+        }
+        else {
+            resultCompletion(location,error);
+        }
+    }];
+    clientRequest.internalRequest = internalRequest;
+    return clientRequest;
+}
+
+- (id<MCHAPIClientCancellableRequest>)_getDirectURLForDeviceWithURL:(NSURL *)proxyURL
+                                                             fileID:(NSString *)fileID
+                                                    completionBlock:(MCHAPIClientURLCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
     NSParameterAssert(proxyURL);
     NSParameterAssert(fileID);
@@ -614,9 +996,11 @@ NSURLSessionDownloadDelegate
                                      error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     MCHMakeWeakReference(clientRequest);
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest =
+    [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
+     ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -639,8 +1023,8 @@ NSURLSessionDownloadDelegate
 
 - (id<MCHAPIClientCancellableRequest>)downloadFileContentForDeviceWithURL:(NSURL *)proxyURL
                                                                    fileID:(NSString *)fileID
-                                                            progressBlock:(MCHAPIClientProgressBlock)progressBlock
-                                                          completionBlock:(MCHAPIClientURLCompletionBlock)downloadCompletionBlock{
+                                                            progressBlock:(MCHAPIClientProgressBlock _Nullable)progressBlock
+                                                          completionBlock:(MCHAPIClientURLCompletionBlock _Nullable)downloadCompletionBlock{
     MCHMakeWeakSelf;
     NSParameterAssert(proxyURL);
     NSParameterAssert(fileID);
@@ -650,20 +1034,21 @@ NSURLSessionDownloadDelegate
                                      error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     clientRequest.progressBlock = progressBlock;
     clientRequest.downloadCompletionBlock = downloadCompletionBlock;
     MCHMakeWeakReference(clientRequest);
-    
     id<MCHAPIClientCancellableRequest> infoRequest = [self getFileInfoForDeviceWithURL:proxyURL
                                                                                 fileID:fileID
-                                                                        withCompletion:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
+                                                                       completionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
         if(dictionary){
             MCHFile *file = [[MCHFile alloc] initWithDictionary:dictionary];
-            clientRequest.totalContentSize = file.size;
+            weak_clientRequest.totalContentSize = file.size;
         }
         MCHMakeStrongSelfAndReturnIfNil;
-        id<MCHAPIClientCancellableRequest> tokenRequest = [strongSelf getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+        id<MCHAPIClientCancellableRequest> tokenRequest =
+        [strongSelf getAccessTokenAndEndpointConfigurationWithCompletionBlock:
+         ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
             MCHMakeStrongSelfAndReturnIfNil;
             if(error){
                 [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -692,18 +1077,19 @@ NSURLSessionDownloadDelegate
 - (id<MCHAPIClientCancellableRequest>)uploadFileContentSeparatelyForDeviceWithURL:(NSURL *)proxyURL
                                                                            fileID:(NSString *)fileID
                                                                   localContentURL:(NSURL *)localContentURL
-                                                                    progressBlock:(MCHAPIClientProgressBlock)progressBlock
-                                                                  completionBlock:(MCHAPIClientErrorCompletionBlock)completionBlock{
+                                                                    progressBlock:(MCHAPIClientProgressBlock _Nullable)progressBlock
+                                                                  completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completionBlock{
     MCHMakeWeakSelf;
     NSParameterAssert(proxyURL);
     NSParameterAssert(fileID);
-    if(proxyURL==nil || fileID==nil){
+    NSParameterAssert(localContentURL);
+    if(proxyURL==nil || fileID==nil || localContentURL==nil){
         [MCHAPIClient processErrorCompletion:completionBlock
                                     response:nil
                                        error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    if([[NSFileManager defaultManager] fileExistsAtPath:localContentURL.path]==NO){
+    if ([[NSFileManager defaultManager] fileExistsAtPath:localContentURL.path] == NO) {
         [MCHAPIClient processErrorCompletion:completionBlock
                                     response:nil
                                        error:[NSError MCHErrorWithCode:MCHErrorCodeLocalFileNotFound]];
@@ -717,13 +1103,15 @@ NSURLSessionDownloadDelegate
         return nil;
     }
     
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     clientRequest.progressBlock = progressBlock;
     clientRequest.errorCompletionBlock = completionBlock;
     clientRequest.totalContentSize = @(contentSize);
     MCHMakeWeakReference(clientRequest);
     
-    id<MCHAPIClientCancellableRequest> tokenRequest = [self getAccessTokenEndpointConfigurationWithCompletion:^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
+    id<MCHAPIClientCancellableRequest> tokenRequest =
+    [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
+     ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSString * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
             [strongSelf removeCancellableRequest:weak_clientRequest];
@@ -858,7 +1246,7 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite{
     return result;
 }
 
-- (MCHAPIClientRequest *)createCancellableRequest{
+- (MCHAPIClientRequest *)createAndAddCancellableRequest{
     MCHAPIClientRequest *clientRequest = [[MCHAPIClientRequest alloc] init];
     [self addCancellableRequest:clientRequest];
     return clientRequest;
@@ -882,15 +1270,19 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite{
     }
 }
 
-- (id<MCHAPIClientCancellableRequest>)getAccessTokenEndpointConfigurationWithCompletion:(MCHAPIClientEndpointAndAccessTokenCompletionBlock)completion{
+- (id<MCHAPIClientCancellableRequest>)getAccessTokenAndEndpointConfigurationWithCompletionBlock:(MCHAPIClientEndpointAndAccessTokenCompletionBlock)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     void(^getAccessTokenForEndpointConfigurationBlock)(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSError * _Nullable endpointError) = ^(id<MCHEndpointConfiguration>_Nullable endpointConfiguration, NSError * _Nullable endpointError){
         MCHMakeStrongSelfAndReturnIfNil;
-        NSCParameterAssert(strongSelf.authProvider);
-        if(strongSelf.authProvider){
-            [strongSelf.authProvider getAccessTokenWithCompletion:^(NSString * _Nonnull accessToken, NSError * _Nonnull error) {
+        MCHAppAuthProvider *authProvider = nil;
+        @synchronized (strongSelf) {
+            authProvider = strongSelf.authProvider;
+        }
+        NSCParameterAssert(authProvider);
+        if(authProvider){
+            [authProvider getAccessTokenWithCompletionBlock:^(NSString * _Nonnull accessToken, NSError * _Nonnull error) {
                 [strongSelf removeCancellableRequest:weak_clientRequest];
                 if(completion){
                     completion(endpointConfiguration,accessToken,endpointError?:error);
@@ -904,18 +1296,26 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite{
             }
         }
     };
-    if(self.endpointConfiguration){
-        getAccessTokenForEndpointConfigurationBlock(self.endpointConfiguration,nil);
+    
+    id<MCHEndpointConfiguration> configuration = nil;
+    @synchronized (self) {
+        configuration = self.endpointConfiguration;
+    }
+    
+    if(configuration){
+        getAccessTokenForEndpointConfigurationBlock(configuration,nil);
     }
     else{
-        id<MCHAPIClientCancellableRequest> internalRequest = [self getEndpointConfigurationWithCompletion:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
+        id<MCHAPIClientCancellableRequest> internalRequest =
+        [self getEndpointConfigurationWithCompletionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
             MCHMakeStrongSelfAndReturnIfNil;
             id<MCHEndpointConfiguration> endpointConfiguration = nil;
             if(dictionary){
                 endpointConfiguration =
-                [MCHEndpointConfigurationBuilder configurationWithDictionary:dictionary
-                                                                 authZeroURL:strongSelf.authZeroURL];
-                strongSelf.endpointConfiguration = endpointConfiguration;
+                [MCHEndpointConfigurationBuilder configurationWithDictionary:dictionary];
+                @synchronized (strongSelf) {
+                    strongSelf.endpointConfiguration = endpointConfiguration;
+                }
             }
             weak_clientRequest.internalRequest = nil;
             getAccessTokenForEndpointConfigurationBlock(endpointConfiguration,error);
@@ -1020,10 +1420,10 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite{
     return nil;
 }
 
-+ (NSDictionary * _Nullable)processDictionaryCompletion:(MCHAPIClientDictionaryCompletionBlock)completion
-                                               withData:(NSData * _Nullable)data
-                                               response:(NSURLResponse * _Nullable)response
-                                                  error:(NSError * _Nullable)error{
++ (void)processDictionaryCompletion:(MCHAPIClientDictionaryCompletionBlock)completion
+                           withData:(NSData * _Nullable)data
+                           response:(NSURLResponse * _Nullable)response
+                              error:(NSError * _Nullable)error{
     NSDictionary *responseDictionary = nil;
     NSError *parsingError = nil;
     if(data){
@@ -1056,7 +1456,6 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite{
     if(completion){
         completion(responseDictionary,resultError);
     }
-    return responseDictionary;
 }
 
 + (NSError * _Nullable)processErrorCompletion:(MCHAPIClientErrorCompletionBlock)completion
@@ -1125,6 +1524,14 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite{
     NSLog(@"URL: %@\nHEADER_FIELDS:%@\nBODY: %@",request.URL.absoluteString,
           request.allHTTPHeaderFields,
           [[NSString alloc] initWithData:request.HTTPBody encoding:NSUTF8StringEncoding]);
+}
+
++ (void)dispatchAfterRetryTimeoutBlock:(dispatch_block_t)block{
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(kMCHAPIClientRequestRetryTimeout * NSEC_PER_SEC)),dispatch_get_main_queue(), ^{
+        if (block){
+            block();
+        }
+    });
 }
 
 @end

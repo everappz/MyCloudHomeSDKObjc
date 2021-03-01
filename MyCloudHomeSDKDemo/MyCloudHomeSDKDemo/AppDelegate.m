@@ -38,11 +38,7 @@
     if(myCloudHomeApiKey && myCloudHomeSecretKey){
         [MCHAppAuthManager setSharedManagerWithClientID:myCloudHomeApiKey
                                            clientSecret:myCloudHomeSecretKey
-                                            redirectURI:myCloudHomeCallbackURL
-                                                 scopes:[MCHAppAuthManager defaultScopes]
-                                            authZeroURL:[MCHAppAuthManager defaultAuthZeroURL]
-                         authorizationRequestParameters:[MCHAppAuthManager defaultAuthorizationRequestParameters]
-                                tokenExchangeParameters:[MCHAppAuthManager defaultTokenExchangeParameters]];
+                                            redirectURI:myCloudHomeCallbackURL];
     }
     
     return YES;

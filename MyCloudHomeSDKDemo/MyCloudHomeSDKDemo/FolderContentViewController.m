@@ -43,13 +43,54 @@ NSString * const kTableViewCellIdentifier = @"kTableViewCellIdentifier";
 }
 
 - (void)reloadContentDataAndUpdateView{
+    if (self.userID == nil) {
+        __weak typeof (self) weakSelf = self;
+        [self loadUserIDWithCompletion:^(NSString *userID, NSError *error) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (error){
+                    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error"
+                                                                                   message:error.localizedDescription
+                                                                            preferredStyle:UIAlertControllerStyleAlert];
+                    [alert addAction:[UIAlertAction actionWithTitle:@"OK"
+                                                              style:UIAlertActionStyleCancel
+                                                            handler:nil]];
+                    [weakSelf presentViewController:alert
+                                           animated:YES
+                                         completion:nil];
+                    [weakSelf.tableView reloadData];
+                }
+                else{
+                    [weakSelf reloadContentDataAndUpdateViewInternal];
+                }
+            });
+        }];
+    }
+    else{
+        [self reloadContentDataAndUpdateViewInternal];
+    }
+}
+
+- (void)reloadContentDataAndUpdateViewInternal{
     __weak typeof (self) weakSelf = self;
     void(^completion)(NSArray<LSOnlineFile *> *, NSError *) = ^(NSArray<LSOnlineFile *> *files, NSError *error){
         dispatch_async(dispatch_get_main_queue(), ^{
+            if (error){
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error"
+                                                                               message:error.localizedDescription
+                                                                        preferredStyle:UIAlertControllerStyleAlert];
+                [alert addAction:[UIAlertAction actionWithTitle:@"OK"
+                                                          style:UIAlertActionStyleCancel
+                                                        handler:nil]];
+                [weakSelf presentViewController:alert
+                                       animated:YES
+                                     completion:nil];
+            }
             weakSelf.files = files;
             [weakSelf.tableView reloadData];
         });
     };
+    
+    NSParameterAssert(self.userID!=nil);
     if(self.rootDirectory == nil){
         [self loadDevicesForUserID:self.userID completion:completion];
     }
@@ -78,7 +119,7 @@ NSString * const kTableViewCellIdentifier = @"kTableViewCellIdentifier";
     __weak typeof (self) weakSelf = self;
     self.request = [self.client getFilesForDeviceWithURL:deviceURL
                                                 parentID:itemID
-                                          withCompletion:^(NSArray<NSDictionary *> * _Nullable array, NSError * _Nullable error) {
+                                          completionBlock:^(NSArray<NSDictionary *> * _Nullable array, NSError * _Nullable error) {
         if(error){
             if(completion){
                 completion(nil,error);
@@ -107,10 +148,20 @@ NSString * const kTableViewCellIdentifier = @"kTableViewCellIdentifier";
     }];
 }
 
+- (void)loadUserIDWithCompletion:(void(^)(NSString *userID,NSError *error))completion{
+    [self.client getUserInfoWithCompletionBlock:^(NSDictionary * _Nullable userIDInfoDictionary, NSError * _Nullable error) {
+        MCHUser *user = [[MCHUser alloc] initWithDictionary:userIDInfoDictionary];
+        NSString *userID = [user identifier];
+        if (completion) {
+            completion (userID, error);
+        }
+    }];
+}
+
 - (void)loadDevicesForUserID:(NSString *)userIdentifier
                   completion:(void(^)(NSArray<LSOnlineFile *> *files,NSError *error))completion{
     self.request = [self.client getDevicesForUserWithID:userIdentifier
-                                         withCompletion:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
+                                         completionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
         NSArray *array = [dictionary objectForKey:kMCHData];
         if(error){
             if(completion){
