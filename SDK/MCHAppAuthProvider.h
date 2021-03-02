@@ -14,6 +14,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 extern NSString * const MCHAppAuthProviderDidChangeState;
 
+extern NSString * const MCHAppAuthProviderUseCustomState;
+
 @interface MCHAppAuthProvider : NSObject
 
 - (instancetype)initWithIdentifier:(NSString *)identifier

@@ -11,6 +11,7 @@
 #import "MCHConstants.h"
 #import "MCHNetworkClient.h"
 
+NSString * const MCHAppAuthProviderUseCustomState = @"MCHAppAuthProviderUseCustomState";
 NSString * const MCHAppAuthProviderDidChangeState = @"MCHAppAuthProviderDidChangeState";
 
 @interface MCHAppAuthProvider()<OIDAuthStateChangeDelegate>
@@ -25,10 +26,9 @@ NSString * const MCHAppAuthProviderDidChangeState = @"MCHAppAuthProviderDidChang
 @end
 
 
-@interface MCHOIDTokenRequest : OIDTokenRequest
+@interface MCHOIDTokenRefreshRequest : OIDTokenRequest
 
 @property (nonatomic,copy)NSString *MCHAccessToken;
-
 
 @end
 
@@ -56,10 +56,14 @@ NSString * const MCHAppAuthProviderDidChangeState = @"MCHAppAuthProviderDidChang
         self.identifier = identifier;
         self.userInfo = userInfo;
         self.refreshTokenParameters = refreshTokenParameters;
-        MCHOIDAuthState *customState =
-        [[MCHOIDAuthState alloc] initWithAuthorizationResponse:authState.lastAuthorizationResponse
-                                                 tokenResponse:authState.lastTokenResponse];
-        self.authState = customState;
+        OIDAuthState *resultState = authState;
+        if ([[userInfo objectForKey:MCHAppAuthProviderUseCustomState] boolValue]){
+            MCHOIDAuthState *customState =
+            [[MCHOIDAuthState alloc] initWithAuthorizationResponse:authState.lastAuthorizationResponse
+                                                     tokenResponse:authState.lastTokenResponse];
+            resultState = customState;
+        }
+        self.authState = resultState;
         self.authState.stateChangeDelegate = self;
         self.pendingRequestsCount = 0;
     }
@@ -101,7 +105,7 @@ NSString * const MCHAppAuthProviderDidChangeState = @"MCHAppAuthProviderDidChang
 @end
 
 
-@implementation MCHOIDTokenRequest
+@implementation MCHOIDTokenRefreshRequest
 
 - (NSURLRequest *)URLRequest {
     NSURL *tokenRequestURL = self.configuration.tokenEndpoint;
@@ -142,8 +146,8 @@ NSString * const MCHAppAuthProviderDidChangeState = @"MCHAppAuthProviderDidChang
 
 - (OIDTokenRequest *)tokenRefreshRequestWithAdditionalParameters:
 (NSDictionary<NSString *, NSString *> *)additionalParameters {
-    MCHOIDTokenRequest *tokenRefreshRequest =
-    [[MCHOIDTokenRequest alloc]
+    MCHOIDTokenRefreshRequest *tokenRefreshRequest =
+    [[MCHOIDTokenRefreshRequest alloc]
      initWithConfiguration:self.lastAuthorizationResponse.request.configuration
      grantType:OIDGrantTypeRefreshToken
      authorizationCode:nil

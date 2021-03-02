@@ -14,10 +14,16 @@
 #import "MCHConstants.h"
 #import "NSError+MCHSDK.h"
 #import "MCHEndpointConfiguration.h"
+#import "MCHNetworkClient.h"
 
 NSString * const MCHAppAuthManagerAuthDidChange = @"MCHAppAuthManagerAuthDidChange";
 NSString * const MCHAppAuthManagerAuthKey = @"MCHAppAuthManagerAuthKey";
 NSString * const MCHAppAuthManagerErrorKey = @"MCHAppAuthManagerErrorKey";
+
+@interface MCHOIDTokenExchangeRequest : OIDTokenRequest
+
+@end
+
 
 @interface MCHAppAuthManager()
 
@@ -147,6 +153,8 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
     if(authURL && tokenEndpoint && redirectURI){
         OIDServiceConfiguration *configuration = [[OIDServiceConfiguration alloc] initWithAuthorizationEndpoint:authURL
                                                                                                   tokenEndpoint:tokenEndpoint];
+        
+        /*
         OIDAuthorizationRequest *request =
         [[OIDAuthorizationRequest alloc] initWithConfiguration:configuration
                                                       clientId:self.clientID
@@ -155,6 +163,22 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
                                                    redirectURL:redirectURI
                                                   responseType:OIDResponseTypeCode
                                           additionalParameters:self.authorizationRequestAdditionalParameters];
+        */
+        
+        OIDAuthorizationRequest *request =
+        [[OIDAuthorizationRequest alloc] initWithConfiguration:configuration
+                                                      clientId:self.clientID
+                                                  clientSecret:self.clientSecret
+                                                         scope:[OIDScopeUtilities scopesWithArray:self.scopes]
+                                                   redirectURL:redirectURI
+                                                  responseType:OIDResponseTypeCode
+                                                         state:nil
+                                                         nonce:nil
+                                                  codeVerifier:nil
+                                                 codeChallenge:nil
+                                           codeChallengeMethod:nil
+                                          additionalParameters:self.authorizationRequestAdditionalParameters];
+
         return request;
     }
     return nil;
@@ -238,6 +262,8 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
                                                   callback:completionBlock];
 }
 
+
+
 + (id<OIDExternalUserAgentSession>)authStateByPresentingAuthorizationRequest:(OIDAuthorizationRequest *)authorizationRequest
                                                            externalUserAgent:(MCHAuthorizationUserAgentWebView *)externalUserAgent
                                                      tokenExchangeParameters:(nullable NSDictionary<NSString *, NSString *> *)tokenExchangeAdditionalParameters
@@ -270,8 +296,26 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
                 // if the request is for the code flow (NB. not hybrid), assumes the
                 // code is intended for this client, and performs the authorization
                 // code exchange
-                OIDTokenRequest *tokenExchangeRequest =
-                [authorizationResponse tokenExchangeRequestWithAdditionalParameters:tokenExchangeAdditionalParameters];
+                
+                
+                
+               // OIDTokenRequest *tokenExchangeRequest =
+               // [authorizationResponse tokenExchangeRequestWithAdditionalParameters:tokenExchangeAdditionalParameters];
+                
+                //use custom token exchange request
+                OIDServiceConfiguration *configuration = authorizationResponse.request.configuration;
+                MCHOIDTokenExchangeRequest *tokenExchangeRequest =
+                [[MCHOIDTokenExchangeRequest alloc] initWithConfiguration:configuration
+                                                     grantType:OIDGrantTypeAuthorizationCode
+                                             authorizationCode:authorizationResponse.authorizationCode
+                                                   redirectURL:authorizationResponse.request.redirectURL
+                                                      clientID:authorizationResponse.request.clientID
+                                                  clientSecret:authorizationResponse.request.clientSecret
+                                                         scope:nil
+                                                  refreshToken:nil
+                                                  codeVerifier:authorizationResponse.request.codeVerifier
+                                          additionalParameters:tokenExchangeAdditionalParameters];
+                
                 [OIDAuthorizationService performTokenRequest:tokenExchangeRequest
                                originalAuthorizationResponse:authorizationResponse
                                                     callback:^(OIDTokenResponse *_Nullable tokenResponse,
@@ -366,5 +410,53 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
                                                           userInfo:dictionary];
     });
 }
+
+@end
+
+
+@implementation MCHOIDTokenExchangeRequest 
+
+- (NSURLRequest *)URLRequest {
+    NSURL *tokenRequestURL = self.configuration.tokenEndpoint;
+    NSMutableURLRequest *URLRequest = [[NSURLRequest requestWithURL:tokenRequestURL] mutableCopy];
+    URLRequest.HTTPMethod = @"POST";
+    [URLRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    
+    NSMutableDictionary *bodyParams = [NSMutableDictionary new];
+    if (self.clientID) {
+        [bodyParams setObject:self.clientID forKey:@"client_id"];
+    }
+    if (self.grantType) {
+        [bodyParams setObject:self.grantType forKey:@"grant_type"];
+    }
+    if (self.refreshToken) {
+        [bodyParams setObject:self.refreshToken forKey:@"refresh_token"];
+    }
+    if (self.clientSecret) {
+        [bodyParams setObject:self.clientSecret forKey:@"client_secret"];
+    }
+    if (self.scope) {
+        [bodyParams setObject:self.scope forKey:@"scope"];
+    }
+    if (self.redirectURL.absoluteString) {
+        [bodyParams setObject:[self.redirectURL.absoluteString stringByReplacingOccurrencesOfString:@"/" withString:@"\\/"] forKey:@"redirect_uri"];
+    }
+    if (self.authorizationCode) {
+        [bodyParams setObject:self.authorizationCode forKey:@"code"];
+    }
+    if (self.codeVerifier) {
+        [bodyParams setObject:self.codeVerifier forKey:@"code_verifier"];
+    }
+    if (self.additionalParameters){
+        [bodyParams addEntriesFromDictionary:self.additionalParameters];
+    }
+ 
+    NSData *body = [MCHNetworkClient createJSONBodyWithParameters:bodyParams];
+    [URLRequest setHTTPBody:body];
+    [URLRequest addValue:[NSString stringWithFormat:@"%@",@(body.length)] forHTTPHeaderField:@"Content-Length"];
+    [MCHNetworkClient printRequest:URLRequest];
+    return URLRequest;
+}
+
 
 @end

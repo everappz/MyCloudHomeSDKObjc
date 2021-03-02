@@ -120,8 +120,13 @@
     MCHAppAuthProvider *authProvider = [self authProviderForIdentifier:identifier];
     NSParameterAssert(authProvider == nil);
     if(authProvider == nil) {
+        NSMutableDictionary *resultUserInfo = [NSMutableDictionary new];
+        if (userInfo){
+            [resultUserInfo addEntriesFromDictionary:userInfo];
+        }
+        [resultUserInfo setObject:@(YES) forKey:MCHAppAuthProviderUseCustomState];
         authProvider = [[MCHAppAuthProvider alloc] initWithIdentifier:identifier
-                                                             userInfo:userInfo
+                                                             userInfo:resultUserInfo
                                                                 state:authState
                                                refreshTokenParameters:[[MCHAppAuthManager sharedManager] refreshRequestParameters]];
         if(authProvider){
