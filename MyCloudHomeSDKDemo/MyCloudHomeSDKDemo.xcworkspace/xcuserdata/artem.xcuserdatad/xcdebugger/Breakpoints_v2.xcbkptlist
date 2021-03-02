@@ -142,8 +142,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAppAuthManager.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "294"
-            endingLineNumber = "294"
+            startingLineNumber = "279"
+            endingLineNumber = "279"
             landmarkName = "+authStateByPresentingAuthorizationRequest:externalUserAgent:tokenExchangeParameters:callback:"
             landmarkType = "7">
          </BreakpointContent>
@@ -158,8 +158,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAppAuthManager.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "206"
-            endingLineNumber = "206"
+            startingLineNumber = "193"
+            endingLineNumber = "193"
             landmarkName = "-authWithAutoCodeExchangeFromWebView:webViewDidStartLoadingBlock:webViewDidFinishLoadingBlock:webViewDidFailWithErrorBlock:completionBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -174,8 +174,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAppAuthManager.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "277"
-            endingLineNumber = "277"
+            startingLineNumber = "262"
+            endingLineNumber = "262"
             landmarkName = "+authStateByPresentingAuthorizationRequest:externalUserAgent:tokenExchangeParameters:callback:"
             landmarkType = "7">
          </BreakpointContent>
@@ -190,8 +190,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAppAuthManager.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "324"
-            endingLineNumber = "324"
+            startingLineNumber = "302"
+            endingLineNumber = "302"
             landmarkName = "+authStateByPresentingAuthorizationRequest:externalUserAgent:tokenExchangeParameters:callback:"
             landmarkType = "7">
          </BreakpointContent>
@@ -206,8 +206,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAppAuthManager.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "366"
-            endingLineNumber = "366"
+            startingLineNumber = "341"
+            endingLineNumber = "341"
             landmarkName = "+authStateByPresentingAuthorizationRequest:externalUserAgent:tokenExchangeParameters:callback:"
             landmarkType = "7">
          </BreakpointContent>
@@ -462,8 +462,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAppAuthManager.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "458"
-            endingLineNumber = "458"
+            startingLineNumber = "433"
+            endingLineNumber = "433"
             landmarkName = "-URLRequest"
             landmarkType = "7">
          </BreakpointContent>

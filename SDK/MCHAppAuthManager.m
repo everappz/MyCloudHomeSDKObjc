@@ -108,7 +108,6 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
     return
     @{
         @"audience":@"mycloud.com"
-        //@"scope":[[self defaultScopes] componentsJoinedByString:@" "]
     };
 }
 
@@ -153,18 +152,6 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
     if(authURL && tokenEndpoint && redirectURI){
         OIDServiceConfiguration *configuration = [[OIDServiceConfiguration alloc] initWithAuthorizationEndpoint:authURL
                                                                                                   tokenEndpoint:tokenEndpoint];
-        
-        /*
-        OIDAuthorizationRequest *request =
-        [[OIDAuthorizationRequest alloc] initWithConfiguration:configuration
-                                                      clientId:self.clientID
-                                                  clientSecret:self.clientSecret
-                                                        scopes:self.scopes
-                                                   redirectURL:redirectURI
-                                                  responseType:OIDResponseTypeCode
-                                          additionalParameters:self.authorizationRequestAdditionalParameters];
-        */
-        
         OIDAuthorizationRequest *request =
         [[OIDAuthorizationRequest alloc] initWithConfiguration:configuration
                                                       clientId:self.clientID
@@ -262,20 +249,18 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
                                                   callback:completionBlock];
 }
 
-
-
 + (id<OIDExternalUserAgentSession>)authStateByPresentingAuthorizationRequest:(OIDAuthorizationRequest *)authorizationRequest
                                                            externalUserAgent:(MCHAuthorizationUserAgentWebView *)externalUserAgent
                                                      tokenExchangeParameters:(nullable NSDictionary<NSString *, NSString *> *)tokenExchangeAdditionalParameters
                                                                     callback:(OIDAuthStateAuthorizationCallback)callback {
     
-    __block  NSURL *authRequestLoadedURL = nil;
+    __block  NSURL *authRequestURL = nil;
     __strong MCHAuthorizationUserAgentWebViewLoadingBlock originalWebViewDidFinishLoadingBlock =
     [externalUserAgent.webViewDidFinishLoadingBlock copy];
     
     externalUserAgent.webViewDidFinishLoadingBlock = ^(WKWebView *webView){
-        if (authRequestLoadedURL == nil){
-            authRequestLoadedURL = webView.URL;
+        if (authRequestURL == nil){
+            authRequestURL = webView.URL;
         }
         if (originalWebViewDidFinishLoadingBlock) {
             originalWebViewDidFinishLoadingBlock(webView);
@@ -293,19 +278,12 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
         if (authorizationResponse) {
             if ([authorizationRequest.responseType
                  isEqualToString:OIDResponseTypeCode]) {
-                // if the request is for the code flow (NB. not hybrid), assumes the
-                // code is intended for this client, and performs the authorization
-                // code exchange
-                
-                
-                
-               // OIDTokenRequest *tokenExchangeRequest =
-               // [authorizationResponse tokenExchangeRequestWithAdditionalParameters:tokenExchangeAdditionalParameters];
+
+                OIDServiceConfiguration *originalConfiguration = authorizationResponse.request.configuration;
                 
                 //use custom token exchange request
-                OIDServiceConfiguration *configuration = authorizationResponse.request.configuration;
                 MCHOIDTokenExchangeRequest *tokenExchangeRequest =
-                [[MCHOIDTokenExchangeRequest alloc] initWithConfiguration:configuration
+                [[MCHOIDTokenExchangeRequest alloc] initWithConfiguration:originalConfiguration
                                                      grantType:OIDGrantTypeAuthorizationCode
                                              authorizationCode:authorizationResponse.authorizationCode
                                                    redirectURL:authorizationResponse.request.redirectURL
@@ -328,13 +306,10 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
                                      tokenResponse:tokenResponse];
                     }
                     
-                    //try to submit token exchange request to loaded URL
-                    //(if we received redirect during authorizationRequest loading)
-                    if (authState == nil && authRequestLoadedURL != nil) {
-                        
-                        OIDServiceConfiguration *originalConfiguration = authorizationResponse.request.configuration;
-                        
-                        NSURL *authZeroURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@://%@",authRequestLoadedURL.scheme,authRequestLoadedURL.host]];
+                    //try to submit token exchange request to authRequestURL
+                    if (authState == nil && authRequestURL != nil) {
+
+                        NSURL *authZeroURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@://%@",authRequestURL.scheme,authRequestURL.host]];
                         NSURL *tokenEndpoint = [authZeroURL URLByAppendingPathComponent:kMCHOAuthToken];
                         NSCParameterAssert(tokenEndpoint);
                         
@@ -343,12 +318,12 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
                             return;
                         }
                         
-                        OIDServiceConfiguration *configuration =
+                        OIDServiceConfiguration *configurationModified =
                         [[OIDServiceConfiguration alloc] initWithAuthorizationEndpoint:originalConfiguration.authorizationEndpoint
                                                                          tokenEndpoint:tokenEndpoint];
                         
-                        OIDTokenRequest *tokenExchangeRequest =
-                        [[OIDTokenRequest alloc] initWithConfiguration:configuration
+                        OIDTokenRequest *tokenExchangeRequestModified =
+                        [[OIDTokenRequest alloc] initWithConfiguration:configurationModified
                                                              grantType:OIDGrantTypeAuthorizationCode
                                                      authorizationCode:authorizationResponse.authorizationCode
                                                            redirectURL:authorizationResponse.request.redirectURL
@@ -359,7 +334,7 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
                                                           codeVerifier:authorizationResponse.request.codeVerifier
                                                   additionalParameters:tokenExchangeAdditionalParameters];
                         
-                        [OIDAuthorizationService performTokenRequest:tokenExchangeRequest
+                        [OIDAuthorizationService performTokenRequest:tokenExchangeRequestModified
                                        originalAuthorizationResponse:authorizationResponse
                                                             callback:^(OIDTokenResponse *_Nullable tokenResponse,
                                                                        NSError *_Nullable tokenError) {
