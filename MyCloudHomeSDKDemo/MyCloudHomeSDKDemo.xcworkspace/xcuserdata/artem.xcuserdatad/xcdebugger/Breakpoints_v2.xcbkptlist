@@ -71,54 +71,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "FD3F69A0-E0DE-48C1-AB4D-2FFFBEE04D16"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClientCache.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "111"
-            endingLineNumber = "111"
-            landmarkName = "-createClientForIdentifier:userInfo:authState:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "18564228-F589-4613-B9B6-0C84A3C98562"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClientCache.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "146"
-            endingLineNumber = "146"
-            landmarkName = "-authStateChanged:forIdentifier:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "426CDC71-4696-4EB6-BF25-8B7B128FF853"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "MyCloudHomeSDKDemo/MyCloudHomeHelper.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "119"
-            endingLineNumber = "119"
-            landmarkName = "+createClientWithAuthData:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "70BA9A72-012D-4549-B324-BF10E310F219"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
@@ -126,8 +78,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "204"
-            endingLineNumber = "204"
+            startingLineNumber = "219"
+            endingLineNumber = "219"
             landmarkName = "-_getUserInfoWithCompletionBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -161,22 +113,6 @@
             startingLineNumber = "518"
             endingLineNumber = "518"
             landmarkName = "-performActionWithFreshTokens:additionalRefreshParameters:dispatchQueue:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "CC632A72-A308-463B-B52E-8F0EC7C02D23"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClientCache.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "168"
-            endingLineNumber = "168"
-            landmarkName = "-authProviderDidChangeNotification:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -279,22 +215,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "EE986BAC-7DC4-4D87-979E-DD453FD7D4D4"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "98"
-            endingLineNumber = "98"
-            landmarkName = "-getEndpointConfigurationWithCompletionBlock:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "CC917C03-A01C-470A-BEE5-85A1CFC8849D"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
@@ -318,13 +238,13 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1530"
-            endingLineNumber = "1530"
+            startingLineNumber = "1234"
+            endingLineNumber = "1234"
             landmarkName = "+dispatchAfterRetryTimeoutBlock:"
             landmarkType = "7">
             <Locations>
                <Location
-                  uuid = "B2D4C476-72A0-4436-976C-83C5210A6DD0 - b3f259ac35dd022f"
+                  uuid = "B2D4C476-72A0-4436-976C-83C5210A6DD0 - b3f259ac35dcfc17"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -334,12 +254,12 @@
                   urlString = "file:///Users/artem/Documents/projects/MyCloudHomeSDKObjc/MyCloudHomeSDKDemo/Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "1530"
-                  endingLineNumber = "1530"
+                  startingLineNumber = "1234"
+                  endingLineNumber = "1234"
                   offsetFromSymbolStart = "43">
                </Location>
                <Location
-                  uuid = "B2D4C476-72A0-4436-976C-83C5210A6DD0 - cbab4aa764fa05e4"
+                  uuid = "B2D4C476-72A0-4436-976C-83C5210A6DD0 - cbab4aa764fbfbdc"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -349,27 +269,11 @@
                   urlString = "file:///Users/artem/Documents/projects/MyCloudHomeSDKObjc/MyCloudHomeSDKDemo/Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "1530"
-                  endingLineNumber = "1530"
+                  startingLineNumber = "1234"
+                  endingLineNumber = "1234"
                   offsetFromSymbolStart = "12">
                </Location>
             </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "E7DDF2CD-4CA5-4ED5-A607-9F8A6F31C0DA"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "102"
-            endingLineNumber = "102"
-            landmarkName = "-getEndpointConfigurationWithCompletionBlock:"
-            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -382,8 +286,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "150"
-            endingLineNumber = "150"
+            startingLineNumber = "165"
+            endingLineNumber = "165"
             landmarkName = "-getUserInfoWithCompletionBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -398,8 +302,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "308"
-            endingLineNumber = "308"
+            startingLineNumber = "323"
+            endingLineNumber = "323"
             landmarkName = "-getDeviceInfoWithID:completionBlock:"
             landmarkType = "7">
          </BreakpointContent>

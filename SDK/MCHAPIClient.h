@@ -8,40 +8,13 @@
 
 
 #import <Foundation/Foundation.h>
+#import "MCHConstants.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @protocol MCHEndpointConfiguration;
 @class MCHAppAuthProvider;
-
-typedef void(^MCHAPIClientDictionaryCompletionBlock)(NSDictionary *_Nullable dictionary, NSError * _Nullable error);
-typedef void(^MCHAPIClientArrayCompletionBlock)(NSArray<NSDictionary *> * _Nullable array, NSError * _Nullable error);
-typedef void(^MCHAPIClientVoidCompletionBlock)(void);
-typedef void(^MCHAPIClientErrorCompletionBlock)(NSError * _Nullable error);
-typedef void(^MCHAPIClientDidReceiveDataBlock)(NSData * _Nullable data);
-typedef void(^MCHAPIClientDidReceiveResponseBlock)(NSURLResponse * _Nullable response);
-typedef void(^MCHAPIClientProgressBlock)(float progress);
-typedef void(^MCHAPIClientURLCompletionBlock)(NSURL *_Nullable location, NSError * _Nullable error);
-
-@protocol MCHAPIClientCancellableRequest <NSObject>
-
-- (void)cancel;
-
-@end
-
-
-
-@interface MCHAPIClientRequest : NSObject <MCHAPIClientCancellableRequest>
-
-- (instancetype)initWithInternalRequest:(id<MCHAPIClientCancellableRequest>)internalRequest;
-
-@property (nonatomic,strong,readonly)id<MCHAPIClientCancellableRequest> internalRequest;
-
-- (BOOL)isCancelled;
-
-@end
-
-
+@protocol MCHAPIClientCancellableRequest;
 
 @interface MCHAPIClient : NSObject
 
