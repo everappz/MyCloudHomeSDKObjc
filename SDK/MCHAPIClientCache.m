@@ -106,7 +106,9 @@
 
 - (MCHAPIClient *_Nullable)createClientForIdentifier:(NSString *_Nonnull)identifier
                                             userInfo:(NSDictionary *_Nullable)userInfo
-                                           authState:(OIDAuthState *_Nonnull)authState{
+                                           authState:(OIDAuthState *_Nonnull)authState
+                                sessionConfiguration:(NSURLSessionConfiguration * _Nullable)URLSessionConfiguration
+{
     
     NSParameterAssert(authState);
     NSParameterAssert(identifier);
@@ -131,7 +133,7 @@
         return nil;
     }
     
-    MCHAPIClient *client = [[MCHAPIClient alloc] initWithURLSessionConfiguration:nil
+    MCHAPIClient *client = [[MCHAPIClient alloc] initWithURLSessionConfiguration:URLSessionConfiguration
                                                            endpointConfiguration:nil
                                                                     authProvider:authProvider];
     NSParameterAssert(client);

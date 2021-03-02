@@ -132,7 +132,8 @@ NSString * const MCHUserEmail = @"MCHUserEmail";
                 if (apiClient == nil) {
                     apiClient = [[MCHAPIClientCache sharedCache] createClientForIdentifier:userID
                                                                                   userInfo:nil
-                                                                                 authState:authState];
+                                                                                 authState:authState
+                                                                      sessionConfiguration:nil];
                 }
             }
         }

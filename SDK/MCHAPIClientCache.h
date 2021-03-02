@@ -21,7 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (MCHAPIClient *_Nullable)createClientForIdentifier:(NSString *_Nonnull)identifier
                                             userInfo:(NSDictionary *_Nullable)userInfo
-                                           authState:(OIDAuthState *_Nonnull)authState;
+                                           authState:(OIDAuthState *_Nonnull)authState
+                                sessionConfiguration:(NSURLSessionConfiguration * _Nullable)URLSessionConfiguration;
 
 - (void)authStateChanged:(OIDAuthState *_Nonnull)authState 
            forIdentifier:(NSString *_Nonnull)identifier;
