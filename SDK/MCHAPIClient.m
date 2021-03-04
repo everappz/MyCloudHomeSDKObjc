@@ -68,8 +68,10 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
         if(authProvider){
             [authProvider getAccessTokenWithCompletionBlock:^(NSString * _Nonnull accessToken, NSError * _Nonnull error) {
                 [strongSelf removeCancellableRequest:weak_clientRequest];
+                NSError *tokenError = (endpointError != nil) ? endpointError : error;
+                NSError *resultError = (accessToken == nil) ? tokenError : nil;
                 if(completion){
-                    completion(endpointConfiguration,accessToken,endpointError?:error);
+                    completion(endpointConfiguration,accessToken,resultError);
                 }
             }];
         }
