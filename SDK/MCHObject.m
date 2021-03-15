@@ -17,6 +17,14 @@
 @end
 
 
+@interface MCHDateParser : NSObject
+
++ (nullable NSDate *)dateFromString:(nullable NSString *)string;
+
++ (nullable NSString *)stringFromDate:(nullable NSDate *)date;
+
+@end
+
 @interface MCHObject()
 
 @property (nonatomic,strong)NSDictionary *dictionary;
@@ -156,8 +164,7 @@
                 return urlObject.absoluteString;
             }
             else if(dateObject!=nil){
-                ISO8601DateFormatter *formatter = [[ISO8601DateFormatter alloc] init];
-                NSString *str = [formatter stringFromDate:dateObject];
+                NSString *str = [MCHDateParser stringFromDate:dateObject];
                 return str;
             }
         }
@@ -198,16 +205,14 @@
                 return [numberObject.stringValue dataUsingEncoding:NSUTF8StringEncoding];
             }
             else if(dateObject!=nil){
-                ISO8601DateFormatter *formatter = [[ISO8601DateFormatter alloc] init];
-                NSString *str = [formatter stringFromDate:dateObject];
+                NSString *str = [MCHDateParser stringFromDate:dateObject];
                 return [str dataUsingEncoding:NSUTF8StringEncoding];
             }
         }
         else if(classObj==[NSDate class]){
             if(stringObject!=nil){
                 NSString *dateStr = stringObject;
-                ISO8601DateFormatter *formatter = [[ISO8601DateFormatter alloc] init];
-                NSDate *date = [formatter dateFromString:dateStr];
+                NSDate *date = [MCHDateParser dateFromString:dateStr];
                 return date;
             }
             else if(numberObject!=nil){
@@ -221,6 +226,38 @@
     
     NSParameterAssert(NO);
     return nil;
+}
+
+
+@end
+
+
+@implementation MCHDateParser
+
++ (ISO8601DateFormatter *)sharedDateFormatter{
+    static dispatch_once_t onceToken;
+    static ISO8601DateFormatter *formatter;
+    dispatch_once(&onceToken, ^{
+        formatter = [[ISO8601DateFormatter alloc] init];
+    });
+    return formatter;
+}
+
++ (nullable NSDate *)dateFromString:(nullable NSString *)string{
+    if (string == nil) {
+        return nil;
+    }
+    if (string.length == 0) {
+        return nil;
+    }
+    return [[MCHDateParser sharedDateFormatter] dateFromString:string];
+}
+
++ (nullable NSString *)stringFromDate:(nullable NSDate *)date{
+    if (date == nil) {
+        return nil;
+    }
+    return [[MCHDateParser sharedDateFormatter] stringFromDate:date];
 }
 
 @end
