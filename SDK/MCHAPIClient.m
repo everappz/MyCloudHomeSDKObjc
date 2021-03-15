@@ -16,6 +16,7 @@
 #import "MCHNetworkClient.h"
 #import "MCHAPIClientRequest.h"
 #import "MCHRequestsCache.h"
+#import "MCHAccessToken.h"
 
 #define MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest) if (weak_clientRequest == nil || weak_clientRequest.isCancelled){ return; }
 
@@ -1215,7 +1216,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
         }
         else{
             NSURL *requestURL = [[[proxyURL URLByAppendingPathComponent:kMCHSdkV2Files] URLByAppendingPathComponent:fileID] URLByAppendingPathComponent:kMCHContent];
-            NSString *requestURLStringWithAuth = [NSString stringWithFormat:@"%@?access_token=%@",requestURL.absoluteString,accessToken];
+            NSString *requestURLStringWithAuth = [NSString stringWithFormat:@"%@?access_token=%@",requestURL.absoluteString,accessToken.token];
             NSURL *requestURLWithAuth = [NSURL URLWithString:requestURLStringWithAuth];
             [MCHNetworkClient processURLCompletion:completion
                                                url:requestURLWithAuth
