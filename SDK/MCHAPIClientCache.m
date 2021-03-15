@@ -149,13 +149,24 @@
         return;
     }
     NSLog(@"authStateChanged: %@ forIdentifier: %@",authState.accessToken,identifier);
+    MCHAppAuthProvider *oldProvider = [self authProviderForIdentifier:identifier];
+    NSParameterAssert(oldProvider);
+    MCHAppAuthProvider *authProvider = [[MCHAppAuthProvider alloc] initWithIdentifier:identifier
+                                                                                state:authState];
+    NSParameterAssert(authProvider);
+    if(authProvider){
+        [self setAuthProvider:authProvider forIdentifier:identifier];
+    }
+    MCHAPIClient *apiClient = [self clientForIdentifier:identifier];
+    NSParameterAssert(apiClient);
+    [apiClient updateAuthProvider:authProvider];
 }
 
 - (void)authProviderDidChangeNotification:(NSNotification *)notification{
     MCHAppAuthProvider *provider = notification.object;
     NSParameterAssert([provider isKindOfClass:[MCHAppAuthProvider class]]);
     if([provider isKindOfClass:[MCHAppAuthProvider class]]){
-        [self authStateChanged:provider.authState forIdentifier:provider.identifier];
+        NSLog(@"authProviderDidChangeNotification: %@ forIdentifier: %@",provider.authState.accessToken,provider.identifier);
     }
 }
 
