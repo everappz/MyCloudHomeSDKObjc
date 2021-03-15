@@ -11,6 +11,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class MCHRequestsCache;
+@class MCHAccessToken;
 
 @interface MCHNetworkClient : NSObject
 
@@ -22,24 +23,24 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (NSMutableURLRequest *_Nullable)GETRequestWithURL:(NSURL *)requestURL
                                         contentType:(NSString *)contentType
-                                        accessToken:(NSString * _Nullable)accessToken;
+                                        accessToken:(MCHAccessToken * _Nullable)accessToken;
 
 - (NSMutableURLRequest *_Nullable)DELETERequestWithURL:(NSURL *)requestURL
                                            contentType:(NSString *)contentType
-                                           accessToken:(NSString * _Nullable)accessToken;
+                                           accessToken:(MCHAccessToken * _Nullable)accessToken;
 
 - (NSMutableURLRequest *_Nullable)POSTRequestWithURL:(NSURL *)requestURL
                                          contentType:(NSString *)contentType
-                                         accessToken:(NSString * _Nullable)accessToken;
+                                         accessToken:(MCHAccessToken * _Nullable)accessToken;
 
 - (NSMutableURLRequest *_Nullable)PUTRequestWithURL:(NSURL *)requestURL
                                         contentType:(NSString *)contentType
-                                        accessToken:(NSString * _Nullable)accessToken;
+                                        accessToken:(MCHAccessToken * _Nullable)accessToken;
 
 - (NSMutableURLRequest *_Nullable)requestWithURL:(NSURL *)requestURL
                                           method:(NSString *)method
                                      contentType:(NSString *)contentType
-                                     accessToken:(NSString * _Nullable)accessToken;
+                                     accessToken:(MCHAccessToken * _Nullable)accessToken;
 
 - (NSURLSessionDataTask *)dataTaskWithRequest:(NSURLRequest *)request
                             completionHandler:(void (^)(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error))completionHandler;
@@ -65,6 +66,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (NSData *)createMultipartRelatedBodyWithBoundary:(NSString *)boundary
                                         parameters:(NSDictionary<NSString *,NSString *> *)parameters;
+
++ (NSURL *)URLByReplacingQueryParameters:(NSDictionary<NSString *,NSString *> *)queryParameters
+                                   inURL:(NSURL *)originalURL;
+
++ (NSDictionary *_Nullable)queryDictionaryFromURL:(NSURL *)URL;
 
 + (NSData *)createJSONBodyWithParameters:(NSDictionary<NSString *,NSString *> *)parameters;
 

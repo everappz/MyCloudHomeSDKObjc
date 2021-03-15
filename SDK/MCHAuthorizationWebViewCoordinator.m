@@ -1,37 +1,35 @@
 //
-//  MCHAuthorizationUserAgentWebView.m
+//  MCHAuthorizationWebViewCoordinator.m
 //  MyCloudHomeSDKObjc
 //
-//  Created by Artem on 10/17/19.
-//  Copyright © 2019 Everappz. All rights reserved.
+//  Created by Artem on 3/10/21.
 //
 
-#import "MCHAuthorizationUserAgentWebView.h"
-#import "OIDAuthorizationService.h"
-#import "OIDErrorUtilities.h"
+#import "MCHAuthorizationWebViewCoordinator.h"
 #import "MCHAppAuthManager.h"
+#import "MCHConstants.h"
+#import "NSError+MCHSDK.h"
 
-typedef BOOL(^MCHAuthorizationUserAgentWebViewDecidePolicyBlock)(WKWebView *webView,WKNavigationAction *navigationAction);
+typedef BOOL(^MCHAuthorizationWebViewDecidePolicyBlock)(WKWebView *webView,WKNavigationAction *navigationAction);
 
-@interface MCHAuthorizationUserAgentWebView()<WKNavigationDelegate>{
-    BOOL _authorizationFlowInProgress;
-    __weak id<OIDExternalUserAgentSession> _session;
-}
+@interface MCHAuthorizationWebViewCoordinator()<WKNavigationDelegate>
 
+@property (nonatomic, assign) BOOL authorizationFlowInProgress;
 @property (nonatomic, weak) WKWebView *webView;
 @property (nonatomic, strong) NSURL *redirectURI;
-@property (nonatomic, copy) MCHAuthorizationUserAgentWebViewDecidePolicyBlock webViewDecidePolicyBlock;
+@property (nonatomic, copy) MCHAuthorizationWebViewDecidePolicyBlock webViewDecidePolicyBlock;
 
 @end
 
 
-@implementation MCHAuthorizationUserAgentWebView
+@implementation MCHAuthorizationWebViewCoordinator
 
 - (instancetype)initWithWebView:(WKWebView *)webView
                     redirectURI:(NSURL *)redirectURI{
     self = [super init];
     if(self){
-        _webView = webView;
+        self.webView = webView;
+        MCHMakeWeakSelf;
         [self setWebViewDecidePolicyBlock:^BOOL(WKWebView * _Nonnull webView, WKNavigationAction * _Nonnull navigationAction) {
             NSURL *navigationActionURL = navigationAction.request.URL;
             NSLog(@"navigationActionURL: %@",navigationActionURL);
@@ -39,7 +37,9 @@ typedef BOOL(^MCHAuthorizationUserAgentWebViewDecidePolicyBlock)(WKWebView *webV
                 NSString *absoluteString = navigationActionURL.absoluteString;
                 absoluteString = [absoluteString stringByReplacingOccurrencesOfString:@"/?" withString:@"?"];
                 NSURL *fixedURL = [NSURL URLWithString:absoluteString];
-                [[MCHAppAuthManager sharedManager] applicationOpenURL:fixedURL];
+                if (weakSelf.completionBlock) {
+                    weakSelf.completionBlock(webView,fixedURL,nil);
+                }
                 return NO;
             }
             return YES;
@@ -48,34 +48,37 @@ typedef BOOL(^MCHAuthorizationUserAgentWebViewDecidePolicyBlock)(WKWebView *webV
     return self;
 }
 
-#pragma mark - OIDExternalUserAgent
+- (void)failAuthorizationWithError:(NSError *)error {
+    if (self.completionBlock) {
+        self.completionBlock (self.webView,nil,error);
+    }
+}
 
-- (BOOL)presentExternalUserAgentRequest:(id<OIDExternalUserAgentRequest>)request
-                                session:(id<OIDExternalUserAgentSession>)session {
-    if (_authorizationFlowInProgress) {
+- (BOOL)presentExternalUserAgentRequest:(NSURLRequest *)request {
+    NSParameterAssert([NSThread isMainThread]);
+    if (self.authorizationFlowInProgress) {
         return NO;
     }
-    _authorizationFlowInProgress = YES;
-    _session = session;
+    self.authorizationFlowInProgress = YES;
     NSParameterAssert(self.webView);
-    NSURL *URL = [request externalUserAgentRequestURL];
-    NSParameterAssert(URL);
-    if (_webView && URL) {
+    NSParameterAssert(request);
+    if (self.webView && request) {
         [self removeAllCookies];
-        _webView.navigationDelegate = self;
-        [_webView loadRequest:[NSURLRequest requestWithURL:URL]];
+        self.webView.navigationDelegate = self;
+        [self.webView loadRequest:request];
         return YES;
     }
     [self cleanUp];
-    NSError *safariError = [OIDErrorUtilities errorWithCode:OIDErrorCodeSafariOpenError
-                                            underlyingError:nil
-                                                description:@"Unable to open WKWebView."];
-    [session failExternalUserAgentFlowWithError:safariError];
+    NSError *safariError = [NSError MCHErrorWithCode:MCHErrorCodeSafariOpenError];
+    [self failAuthorizationWithError:safariError];
     return NO;
 }
 
-- (void)dismissExternalUserAgentAnimated:(BOOL)animated completion:(void (^)(void))completion {
-    if (!_authorizationFlowInProgress) {
+- (void)dismissExternalUserAgentAnimated:(BOOL)animated
+                              completion:(nullable dispatch_block_t)completion
+{
+    NSParameterAssert([NSThread isMainThread]);
+    if (!self.authorizationFlowInProgress) {
         return;
     }
     [self cleanUp];
@@ -85,27 +88,17 @@ typedef BOOL(^MCHAuthorizationUserAgentWebViewDecidePolicyBlock)(WKWebView *webV
 }
 
 - (void)cleanUp {
-    _webView.navigationDelegate = nil;
-    _webView = nil;
-    _session = nil;
-    _authorizationFlowInProgress = NO;
+    self.webView.navigationDelegate = nil;
+    self.webView = nil;
+    self.authorizationFlowInProgress = NO;
 }
 
 #pragma mark - WKWebView
 
 - (void)WKWebViewDidFinish:(WKWebView *)webView error:(NSError *)webViewError {
     
-    if (webView != _webView) {
+    if (webView != self.webView) {
         return;
-    }
-    
-    if(webViewError && _authorizationFlowInProgress){
-        id<OIDExternalUserAgentSession> session = _session;
-        [self cleanUp];
-        NSError *error = [OIDErrorUtilities errorWithCode:OIDErrorCodeProgramCanceledAuthorizationFlow
-                                          underlyingError:nil
-                                              description:nil];
-        [session failExternalUserAgentFlowWithError:error];
     }
     
     if(webViewError){
@@ -117,6 +110,12 @@ typedef BOOL(^MCHAuthorizationUserAgentWebViewDecidePolicyBlock)(WKWebView *webV
         if(self.webViewDidFinishLoadingBlock){
             self.webViewDidFinishLoadingBlock(webView);
         }
+    }
+    
+    if(webViewError && self.authorizationFlowInProgress){
+        [self cleanUp];
+        NSError *error = [NSError MCHErrorWithCode:MCHErrorCodeCanceledAuthorizationFlow];
+        [self failAuthorizationWithError:error];
     }
 }
 

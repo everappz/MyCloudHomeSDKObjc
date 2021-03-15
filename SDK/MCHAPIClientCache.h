@@ -11,7 +11,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class MCHAPIClient;
-@class OIDAuthState;
+@class MCHAuthState;
 
 @interface MCHAPIClientCache : NSObject
 
@@ -20,11 +20,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (MCHAPIClient *_Nullable)clientForIdentifier:(NSString *_Nonnull)identifier;
 
 - (MCHAPIClient *_Nullable)createClientForIdentifier:(NSString *_Nonnull)identifier
-                                            userInfo:(NSDictionary *_Nullable)userInfo
-                                           authState:(OIDAuthState *_Nonnull)authState
+                                           authState:(MCHAuthState *_Nonnull)authState
                                 sessionConfiguration:(NSURLSessionConfiguration * _Nullable)URLSessionConfiguration;
 
-- (void)authStateChanged:(OIDAuthState *_Nonnull)authState 
+- (void)authStateChanged:(MCHAuthState *_Nonnull)authState 
            forIdentifier:(NSString *_Nonnull)identifier;
 
 @end

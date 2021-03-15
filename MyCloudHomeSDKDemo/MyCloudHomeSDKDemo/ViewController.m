@@ -10,14 +10,7 @@
 #import "MyCloudHomeAuthViewController.h"
 #import "MyCloudHomeHelper.h"
 #import "FolderContentViewController.h"
-#import <MyCloudHomeSDKObjc/MCHAppAuthManager.h>
-#import <MyCloudHomeSDKObjc/MCHAPIClient.h>
-#import <MyCloudHomeSDKObjc/MCHAppAuthProvider.h>
-#import <MyCloudHomeSDKObjc/MCHConstants.h>
-#import <MyCloudHomeSDKObjc/MCHUser.h>
-#import <MyCloudHomeSDKObjc/MCHDevice.h>
-#import <MyCloudHomeSDKObjc/MCHAPIClientCache.h>
-#import <AppAuth/AppAuth.h>
+#import <MyCloudHomeSDKObjc/MyCloudHomeSDKObjc.h>
 
 
 NSString * const MCHAuthKey = @"MCHAuthKey";

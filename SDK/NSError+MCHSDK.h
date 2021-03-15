@@ -15,12 +15,17 @@ typedef NS_ENUM(NSInteger, MCHErrorCode) {
     MCHErrorCodeCancelled = -999,
     MCHErrorCodeNone = 0,
     MCHErrorCodeCannotGetAuthURL,
+    MCHErrorCodeCannotGetAccessToken,
+    MCHErrorCodeAccessTokenExpired,
+    MCHErrorCodeCannotUpdateAccessToken,
     MCHErrorCodeAuthProviderIsNil,
     MCHErrorCodeBadInputParameters,
     MCHErrorCodeBadResponse,
     MCHErrorCodeCannotGetDirectURL,
     MCHErrorCodeLocalFileNotFound,
     MCHErrorCodeLocalFileEmpty,
+    MCHErrorCodeSafariOpenError = -9,
+    MCHErrorCodeCanceledAuthorizationFlow = -4,
 };
 
 extern  NSString * const MCHErrorDomain;

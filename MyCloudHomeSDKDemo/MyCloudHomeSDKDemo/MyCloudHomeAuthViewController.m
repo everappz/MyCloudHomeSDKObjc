@@ -9,11 +9,7 @@
 #import "MyCloudHomeAuthViewController.h"
 #import "MyCloudHomeHelper.h"
 #import <WebKit/WebKit.h>
-#import <MyCloudHomeSDKObjc/MCHAppAuthManager.h>
-#import <MyCloudHomeSDKObjc/MCHAPIClient.h>
-#import <MyCloudHomeSDKObjc/MCHAppAuthProvider.h>
-#import <MyCloudHomeSDKObjc/MCHConstants.h>
-#import <MyCloudHomeSDKObjc/MCHUser.h>
+#import <MyCloudHomeSDKObjc/MyCloudHomeSDKObjc.h>
 
 
 @interface MyCloudHomeAuthViewController ()
@@ -65,21 +61,24 @@
 
 - (void)start{
     __weak typeof(self) weakSelf = self;
-    [[MCHAppAuthManager sharedManager] authWithAutoCodeExchangeFromWebView:self.webView
-                                               webViewDidStartLoadingBlock:^(WKWebView * _Nonnull webView) {
+    
+    
+    [[MCHAppAuthManager sharedManager] authFlowWithAutoCodeExchangeFromWebView:self.webView
+                                                   webViewDidStartLoadingBlock:^(WKWebView * _Nonnull webView) {
         [weakSelf.activityIndicator startAnimating];
-    } webViewDidFinishLoadingBlock:^(WKWebView * _Nonnull webView) {
+    }
+                                                  webViewDidFinishLoadingBlock:^(WKWebView * _Nonnull webView) {
         [weakSelf.activityIndicator stopAnimating];
-    } webViewDidFailWithErrorBlock:^(WKWebView * _Nonnull webView, NSError * _Nonnull webViewError) {
+    }
+                                                  webViewDidFailWithErrorBlock:^(WKWebView * _Nonnull webView, NSError * _Nonnull webViewError) {
         [weakSelf.activityIndicator stopAnimating];
         [weakSelf completeWithError:webViewError];
-    } completionBlock:^(OIDAuthState * _Nullable authState, id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSError * _Nullable error) {
+    }
+                                                               completionBlock:^(MCHAuthState * _Nullable authState, id<MCHEndpointConfiguration>  _Nullable endpointConfiguration, NSError * _Nullable error) {
         if(authState){
             MCHAppAuthProvider *authProvider =
             [[MCHAppAuthProvider alloc] initWithIdentifier:[MyCloudHomeHelper uuidString]
-                                                  userInfo:nil
-                                                     state:authState
-                                    refreshTokenParameters:nil];
+                                                     state:authState];
             weakSelf.apiClient =
             [[MCHAPIClient alloc] initWithURLSessionConfiguration:nil
                                             endpointConfiguration:endpointConfiguration
@@ -106,6 +105,7 @@
             [weakSelf completeWithError:error];
         }
     }];
+
 }
 
 - (void)completeWithError:(NSError *)error{
@@ -120,7 +120,7 @@
     }
 }
 
-- (void)completeWithAuthState:(OIDAuthState * _Nullable)authState
+- (void)completeWithAuthState:(MCHAuthState * _Nullable)authState
          userIDInfoDictionary:(NSDictionary * _Nullable)userIDInfoDictionary{
     MCHUser *user = [[MCHUser alloc] initWithDictionary:userIDInfoDictionary];
     NSString *userID = [user identifier];
@@ -135,7 +135,9 @@
         [authResult setObject:userID forKey:MCHUserID];
     }
     if(authState){
-        NSData *authData = [NSKeyedArchiver archivedDataWithRootObject:authState];
+        NSData *authData = [NSKeyedArchiver archivedDataWithRootObject:authState
+                                                 requiringSecureCoding:YES
+                                                                 error:nil];
         NSParameterAssert(authData);
         [authResult setObject:authData?:[NSData data] forKey:MCHAuthDataKey];
     }

@@ -8,14 +8,7 @@
 
 #import "MyCloudHomeHelper.h"
 #import "LSOnlineFile.h"
-#import <MyCloudHomeSDKObjc/MCHAppAuthManager.h>
-#import <MyCloudHomeSDKObjc/MCHAPIClient.h>
-#import <MyCloudHomeSDKObjc/MCHAppAuthProvider.h>
-#import <MyCloudHomeSDKObjc/MCHConstants.h>
-#import <MyCloudHomeSDKObjc/MCHUser.h>
-#import <MyCloudHomeSDKObjc/MCHDevice.h>
-#import <MyCloudHomeSDKObjc/MCHFile.h>
-#import <MyCloudHomeSDKObjc/MCHAPIClientCache.h>
+#import <MyCloudHomeSDKObjc/MyCloudHomeSDKObjc.h>
 
 unsigned long long LSFileContentLengthUnknown = -1;
 
@@ -124,14 +117,13 @@ NSString * const MCHUserEmail = @"MCHUserEmail";
         NSData *authData = (NSData *)authDataObj;
         NSParameterAssert(authData.length>0);
         if(authData.length>0){
-            id obj = [NSKeyedUnarchiver unarchiveObjectWithData:authData];
-            NSParameterAssert([obj isKindOfClass:[OIDAuthState class]]);
-            if([obj isKindOfClass:[OIDAuthState class]]){
-                OIDAuthState *authState = (OIDAuthState *)obj;
+            id obj = [NSKeyedUnarchiver unarchivedObjectOfClass:[MCHAuthState class] fromData:authData error:nil];
+            NSParameterAssert([obj isKindOfClass:[MCHAuthState class]]);
+            if([obj isKindOfClass:[MCHAuthState class]]){
+                MCHAuthState *authState = (MCHAuthState *)obj;
                 apiClient = [[MCHAPIClientCache sharedCache] clientForIdentifier:userID];
                 if (apiClient == nil) {
                     apiClient = [[MCHAPIClientCache sharedCache] createClientForIdentifier:userID
-                                                                                  userInfo:nil
                                                                                  authState:authState
                                                                       sessionConfiguration:nil];
                 }

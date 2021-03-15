@@ -26,6 +26,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (id<MCHAPIClientCancellableRequest> _Nullable)getEndpointConfigurationWithCompletionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion;
 
+- (id<MCHAPIClientCancellableRequest>)getAccessTokenAndEndpointConfigurationWithCompletionBlock:(MCHAPIClientEndpointAndAccessTokenCompletionBlock _Nullable)completion;
+
+- (id<MCHAPIClientCancellableRequest>)updateAccessTokenWithCompletionBlock:(MCHAPIClientVoidCompletionBlock _Nullable)completion;
+
 - (id<MCHAPIClientCancellableRequest> _Nullable)getUserInfoWithCompletionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion;
 
 - (id<MCHAPIClientCancellableRequest> _Nullable)getDevicesForUserWithID:(NSString *)userID

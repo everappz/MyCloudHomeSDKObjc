@@ -7,7 +7,6 @@
 //
 
 #import <WebKit/WebKit.h>
-#import <AppAuth/AppAuth.h>
 #import "MCHAppAuthManager.h"
 #import "MCHAppAuthProvider.h"
 #import "MCHAPIClient.h"
@@ -15,27 +14,15 @@
 #import "NSError+MCHSDK.h"
 #import "MCHEndpointConfiguration.h"
 #import "MCHNetworkClient.h"
-
-NSString * const MCHAppAuthManagerAuthDidChange = @"MCHAppAuthManagerAuthDidChange";
-NSString * const MCHAppAuthManagerAuthKey = @"MCHAppAuthManagerAuthKey";
-NSString * const MCHAppAuthManagerErrorKey = @"MCHAppAuthManagerErrorKey";
-
-@interface MCHOIDTokenExchangeRequest : OIDTokenRequest
-
-@end
-
+#import "MCHAppAuthFlow.h"
 
 @interface MCHAppAuthManager()
 
 @property(nonatomic, copy) NSString *clientID;
 @property(nonatomic, copy) NSString *clientSecret;
 @property(nonatomic, copy) NSString *redirectURI;
-@property(nonatomic, strong) NSArray *scopes;
-@property(nonatomic, strong) MCHAPIClient *apiClient;
-@property(nonatomic, strong, nullable) NSDictionary<NSString *, NSString *> *authorizationRequestAdditionalParameters;
-@property(nonatomic, strong, nullable) NSDictionary<NSString *, NSString *> *tokenExchangeAdditionalParameters;
-@property(nonatomic, strong, nullable) NSDictionary<NSString *, NSString *> *refreshRequestParameters;
-@property(nonatomic, strong, nullable) id<OIDExternalUserAgentSession> currentAuthorizationFlow;
+@property(nonatomic, copy) NSArray<NSString *> *scopes;
+@property(nonatomic, strong) MCHAppAuthFlow *currentAuthorizationFlow;
 
 @end
 
@@ -55,42 +42,17 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
     _sharedAuthManager = [[MCHAppAuthManager alloc] initWithClientID:clientID
                                                         clientSecret:clientSecret
                                                          redirectURI:redirectURI
-                                                              scopes:[MCHAppAuthManager defaultScopes]
-                                      authorizationRequestParameters:[MCHAppAuthManager defaultAuthorizationRequestParameters]
-                                             tokenExchangeParameters:[MCHAppAuthManager defaultTokenExchangeParameters]
-                                            refreshRequestParameters:[MCHAppAuthManager defaultRefreshRequestParameters]];
+                                                              scopes:[MCHAppAuthManager defaultScopes]];
 }
 
 + (void)setSharedManagerWithClientID:(NSString *)clientID
                         clientSecret:(NSString *)clientSecret
                          redirectURI:(NSString *)redirectURI
-                              scopes:(NSArray<NSString *>*)scopes
-      authorizationRequestParameters:(nullable NSDictionary<NSString *, NSString *> *)authorizationRequestAdditionalParameters
-             tokenExchangeParameters:(nullable NSDictionary<NSString *, NSString *> *)tokenExchangeAdditionalParameters
-            refreshRequestParameters:(nullable NSDictionary<NSString *, NSString *> *)refreshRequestParameters{
+                              scopes:(NSArray<NSString *>*)scopes{
     _sharedAuthManager = [[MCHAppAuthManager alloc] initWithClientID:clientID
                                                         clientSecret:clientSecret
                                                          redirectURI:redirectURI
-                                                              scopes:scopes
-                                      authorizationRequestParameters:authorizationRequestAdditionalParameters
-                                             tokenExchangeParameters:tokenExchangeAdditionalParameters
-                                            refreshRequestParameters:refreshRequestParameters];
-}
-
-+ (NSDictionary<NSString *, NSString *> *)defaultTokenExchangeParameters {
-    return @{
-        @"audience": @"mycloud.com"
-    };
-}
-
-+ (NSDictionary<NSString *, NSString *> *)defaultAuthorizationRequestParameters{
-    return
-    @{
-        @"audience":@"mycloud.com",
-        @"connection":@"Username-Password-Authentication",
-        @"sso":@"false",
-        @"protocol":@"oauth2"
-    };
+                                                              scopes:scopes];
 }
 
 + (NSArray<NSString *> *)defaultScopes {
@@ -104,20 +66,10 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
              @"user_read"];
 }
 
-+ (NSDictionary<NSString *, NSString *> *)defaultRefreshRequestParameters{
-    return
-    @{
-        @"audience":@"mycloud.com"
-    };
-}
-
 - (instancetype)initWithClientID:(NSString *)clientID
                     clientSecret:(NSString *)clientSecret
                      redirectURI:(NSString *)redirectURI
                           scopes:(NSArray<NSString *> *)scopes
-  authorizationRequestParameters:(nullable NSDictionary<NSString *, NSString *> *)authorizationRequestAdditionalParameters
-         tokenExchangeParameters:(nullable NSDictionary<NSString *, NSString *> *)tokenExchangeAdditionalParameters
-        refreshRequestParameters:(nullable NSDictionary<NSString *, NSString *> *)refreshRequestParameters
 {
     NSParameterAssert(clientID);
     NSParameterAssert(clientSecret);
@@ -129,309 +81,38 @@ static MCHAppAuthManager *_sharedAuthManager = nil;
         self.clientSecret = clientSecret;
         self.redirectURI = redirectURI;
         self.scopes = scopes;
-        self.refreshRequestParameters = refreshRequestParameters;
-        self.authorizationRequestAdditionalParameters = authorizationRequestAdditionalParameters;
-        self.tokenExchangeAdditionalParameters = tokenExchangeAdditionalParameters;
     }
     return self;
 }
 
-- (BOOL)applicationOpenURL:(NSURL *)url{
-    if ([_currentAuthorizationFlow resumeExternalUserAgentFlowWithURL:url]) {
-        _currentAuthorizationFlow = nil;
-        return YES;
+- (MCHAppAuthFlow *)authFlowWithAutoCodeExchangeFromWebView:(WKWebView *)webView
+                                webViewDidStartLoadingBlock:(MCHAuthorizationWebViewCoordinatorLoadingBlock)webViewDidStartLoadingBlock
+                               webViewDidFinishLoadingBlock:(MCHAuthorizationWebViewCoordinatorLoadingBlock)webViewDidFinishLoadingBlock
+                               webViewDidFailWithErrorBlock:(MCHAuthorizationWebViewCoordinatorErrorBlock)webViewDidFailWithErrorBlock
+                                            completionBlock:(MCHAppAuthManagerAuthorizationBlock)completionBlock
+{
+    if (self.currentAuthorizationFlow) {
+        [self.currentAuthorizationFlow cancel];
+        self.currentAuthorizationFlow = nil;
     }
-    return NO;
-}
-
-- (OIDAuthorizationRequest *_Nullable)authorizationRequestWithAuthorizationEndpoint:(NSURL *_Nonnull)authURL
-                                                                      tokenEndpoint:(NSURL *_Nonnull)tokenEndpoint{
-    NSParameterAssert(authURL);
-    NSParameterAssert(tokenEndpoint);
-    NSURL *redirectURI = [NSURL URLWithString:self.redirectURI];
-    if(authURL && tokenEndpoint && redirectURI){
-        OIDServiceConfiguration *configuration = [[OIDServiceConfiguration alloc] initWithAuthorizationEndpoint:authURL
-                                                                                                  tokenEndpoint:tokenEndpoint];
-        OIDAuthorizationRequest *request =
-        [[OIDAuthorizationRequest alloc] initWithConfiguration:configuration
-                                                      clientId:self.clientID
-                                                  clientSecret:self.clientSecret
-                                                         scope:[OIDScopeUtilities scopesWithArray:self.scopes]
-                                                   redirectURL:redirectURI
-                                                  responseType:OIDResponseTypeCode
-                                                         state:nil
-                                                         nonce:nil
-                                                  codeVerifier:nil
-                                                 codeChallenge:nil
-                                           codeChallengeMethod:nil
-                                          additionalParameters:self.authorizationRequestAdditionalParameters];
-
-        return request;
-    }
-    return nil;
-}
-
-- (void)authWithAutoCodeExchangeFromWebView:(WKWebView *)webView
-                webViewDidStartLoadingBlock:(MCHAuthorizationUserAgentWebViewLoadingBlock) webViewDidStartLoadingBlock
-               webViewDidFinishLoadingBlock:(MCHAuthorizationUserAgentWebViewLoadingBlock) webViewDidFinishLoadingBlock
-               webViewDidFailWithErrorBlock:(MCHAuthorizationUserAgentWebViewErrorBlock) webViewDidFailWithErrorBlock
-                            completionBlock:(MCHAppAuthManagerAuthorizationCallback)completionBlock{
-    NSCParameterAssert(webView);
-    self.apiClient = [[MCHAPIClient alloc] initWithURLSessionConfiguration:nil
-                                                     endpointConfiguration:nil
-                                                              authProvider:nil];
     
-    MCHMakeWeakSelf;
-    [self.apiClient getEndpointConfigurationWithCompletionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
-        MCHMakeStrongSelfAndReturnIfNil;
-        
-        id<MCHEndpointConfiguration> endPointConfiguration =
-        [MCHEndpointConfigurationBuilder configurationWithDictionary:dictionary];
-        NSURL *authZeroURL = endPointConfiguration.authZeroURL;
-        NSCParameterAssert(authZeroURL);
-        
-        if(authZeroURL){
-            
-            NSURL *authorizationEndpoint = [authZeroURL URLByAppendingPathComponent:kMCHAuthorize];
-            NSURL *tokenEndpoint = [authZeroURL URLByAppendingPathComponent:kMCHOAuthToken];
-            NSURL *redirectURI = [NSURL URLWithString:strongSelf.redirectURI];
-            NSDictionary<NSString *, NSString *> *tokenExchangeAdditionalParameters = strongSelf.tokenExchangeAdditionalParameters;
-            
-            OIDAuthorizationRequest *authRequest = [strongSelf authorizationRequestWithAuthorizationEndpoint:authorizationEndpoint
-                                                                                               tokenEndpoint:tokenEndpoint];
-            if(authRequest){
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    strongSelf.currentAuthorizationFlow =
-                    [MCHAppAuthManager authStateByPresentingAuthorizationRequest:authRequest
-                                                                         webView:(WKWebView *)webView
-                                                                     redirectURI:redirectURI
-                                                         tokenExchangeParameters:tokenExchangeAdditionalParameters
-                                                     webViewDidStartLoadingBlock:webViewDidStartLoadingBlock
-                                                    webViewDidFinishLoadingBlock:webViewDidFinishLoadingBlock
-                                                    webViewDidFailWithErrorBlock:webViewDidFailWithErrorBlock
-                                                                 completionBlock:^(OIDAuthState *_Nullable authState, NSError *_Nullable error) {
-                        if (authState) {
-                            [strongSelf didCompleteAuthorization:authState error:nil];
-                        } else {
-                            [strongSelf didCompleteAuthorization:nil error:error];
-                        }
-                        if(completionBlock){
-                            completionBlock(authState,endPointConfiguration,error);
-                        }
-                    }];
-                });
-            }
-            else if (completionBlock){
-                completionBlock(nil,nil,[NSError MCHErrorWithCode:MCHErrorCodeCannotGetAuthURL]);
-            }
-        }
-        else if (completionBlock){
-            completionBlock(nil,nil,[NSError MCHErrorWithCode:MCHErrorCodeCannotGetAuthURL]);
-        }
-    }];
-}
-
-+ (id<OIDExternalUserAgentSession>)authStateByPresentingAuthorizationRequest:(OIDAuthorizationRequest *)authorizationRequest
-                                                                     webView:(WKWebView *)webView
-                                                                 redirectURI:(NSURL *)redirectURI
-                                                     tokenExchangeParameters:(nullable NSDictionary<NSString *, NSString *> *)tokenExchangeAdditionalParameters
-                                                 webViewDidStartLoadingBlock:(MCHAuthorizationUserAgentWebViewLoadingBlock) webViewDidStartLoadingBlock
-                                                webViewDidFinishLoadingBlock:(MCHAuthorizationUserAgentWebViewLoadingBlock) webViewDidFinishLoadingBlock
-                                                webViewDidFailWithErrorBlock:(MCHAuthorizationUserAgentWebViewErrorBlock) webViewDidFailWithErrorBlock
-                                                             completionBlock:(OIDAuthStateAuthorizationCallback)completionBlock{
-    MCHAuthorizationUserAgentWebView *coordinator = [[MCHAuthorizationUserAgentWebView alloc] initWithWebView:webView redirectURI:redirectURI];
-    coordinator.webViewDidStartLoadingBlock = webViewDidStartLoadingBlock;
-    coordinator.webViewDidFinishLoadingBlock = webViewDidFinishLoadingBlock;
-    coordinator.webViewDidFailWithErrorBlock = webViewDidFailWithErrorBlock;
-    return [self authStateByPresentingAuthorizationRequest:authorizationRequest
-                                         externalUserAgent:coordinator
-                                   tokenExchangeParameters:tokenExchangeAdditionalParameters
-                                                  callback:completionBlock];
-}
-
-+ (id<OIDExternalUserAgentSession>)authStateByPresentingAuthorizationRequest:(OIDAuthorizationRequest *)authorizationRequest
-                                                           externalUserAgent:(MCHAuthorizationUserAgentWebView *)externalUserAgent
-                                                     tokenExchangeParameters:(nullable NSDictionary<NSString *, NSString *> *)tokenExchangeAdditionalParameters
-                                                                    callback:(OIDAuthStateAuthorizationCallback)callback {
+    MCHAppAuthFlow *flow = [MCHAppAuthFlow new];
+    flow.clientID = self.clientID;
+    flow.clientSecret = self.clientSecret;
+    flow.redirectURI = self.redirectURI;
+    flow.scopes = self.scopes;
     
-    __block  NSURL *authRequestURL = nil;
-    __strong MCHAuthorizationUserAgentWebViewLoadingBlock originalWebViewDidFinishLoadingBlock =
-    [externalUserAgent.webViewDidFinishLoadingBlock copy];
+    flow.webView = webView;
+    flow.webViewDidStartLoadingBlock = webViewDidStartLoadingBlock;
+    flow.webViewDidFinishLoadingBlock = webViewDidFinishLoadingBlock;
+    flow.webViewDidFailWithErrorBlock = webViewDidFailWithErrorBlock;
+    flow.completionBlock = completionBlock;
     
-    externalUserAgent.webViewDidFinishLoadingBlock = ^(WKWebView *webView){
-        if (authRequestURL == nil){
-            authRequestURL = webView.URL;
-        }
-        if (originalWebViewDidFinishLoadingBlock) {
-            originalWebViewDidFinishLoadingBlock(webView);
-        }
-    };
+    [flow start];
+    self.currentAuthorizationFlow = flow;
     
-    // presents the authorization request
-    id<OIDExternalUserAgentSession> authFlowSession = [OIDAuthorizationService
-                                                       presentAuthorizationRequest:authorizationRequest
-                                                       externalUserAgent:externalUserAgent
-                                                       callback:^(OIDAuthorizationResponse *_Nullable authorizationResponse,
-                                                                  NSError *_Nullable authorizationError) {
-        // inspects response and processes further if needed (e.g. authorization
-        // code exchange)
-        if (authorizationResponse) {
-            if ([authorizationRequest.responseType
-                 isEqualToString:OIDResponseTypeCode]) {
-
-                OIDServiceConfiguration *originalConfiguration = authorizationResponse.request.configuration;
-                
-                //use custom token exchange request
-                MCHOIDTokenExchangeRequest *tokenExchangeRequest =
-                [[MCHOIDTokenExchangeRequest alloc] initWithConfiguration:originalConfiguration
-                                                     grantType:OIDGrantTypeAuthorizationCode
-                                             authorizationCode:authorizationResponse.authorizationCode
-                                                   redirectURL:authorizationResponse.request.redirectURL
-                                                      clientID:authorizationResponse.request.clientID
-                                                  clientSecret:authorizationResponse.request.clientSecret
-                                                         scope:nil
-                                                  refreshToken:nil
-                                                  codeVerifier:authorizationResponse.request.codeVerifier
-                                          additionalParameters:tokenExchangeAdditionalParameters];
-                
-                [OIDAuthorizationService performTokenRequest:tokenExchangeRequest
-                               originalAuthorizationResponse:authorizationResponse
-                                                    callback:^(OIDTokenResponse *_Nullable tokenResponse,
-                                                               NSError *_Nullable tokenError) {
-                    OIDAuthState *authState;
-                    if (tokenResponse) {
-                        authState = [[OIDAuthState alloc]
-                                     initWithAuthorizationResponse:
-                                     authorizationResponse
-                                     tokenResponse:tokenResponse];
-                    }
-                    
-                    //try to submit token exchange request to authRequestURL
-                    if (authState == nil && authRequestURL != nil) {
-
-                        NSURL *authZeroURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@://%@",authRequestURL.scheme,authRequestURL.host]];
-                        NSURL *tokenEndpoint = [authZeroURL URLByAppendingPathComponent:kMCHOAuthToken];
-                        NSCParameterAssert(tokenEndpoint);
-                        
-                        if (tokenEndpoint == nil) {
-                            callback(authState, tokenError);
-                            return;
-                        }
-                        
-                        OIDServiceConfiguration *configurationModified =
-                        [[OIDServiceConfiguration alloc] initWithAuthorizationEndpoint:originalConfiguration.authorizationEndpoint
-                                                                         tokenEndpoint:tokenEndpoint];
-                        
-                        OIDTokenRequest *tokenExchangeRequestModified =
-                        [[OIDTokenRequest alloc] initWithConfiguration:configurationModified
-                                                             grantType:OIDGrantTypeAuthorizationCode
-                                                     authorizationCode:authorizationResponse.authorizationCode
-                                                           redirectURL:authorizationResponse.request.redirectURL
-                                                              clientID:authorizationResponse.request.clientID
-                                                          clientSecret:authorizationResponse.request.clientSecret
-                                                                 scope:nil
-                                                          refreshToken:nil
-                                                          codeVerifier:authorizationResponse.request.codeVerifier
-                                                  additionalParameters:tokenExchangeAdditionalParameters];
-                        
-                        [OIDAuthorizationService performTokenRequest:tokenExchangeRequestModified
-                                       originalAuthorizationResponse:authorizationResponse
-                                                            callback:^(OIDTokenResponse *_Nullable tokenResponse,
-                                                                       NSError *_Nullable tokenError) {
-                            OIDAuthState *authState;
-                            if (tokenResponse) {
-                                authState = [[OIDAuthState alloc]
-                                             initWithAuthorizationResponse:
-                                             authorizationResponse
-                                             tokenResponse:tokenResponse];
-                            }
-                            callback(authState, tokenError);
-                        }];
-                    }
-                    else{
-                        callback(authState, tokenError);
-                    }
-                }];
-            } else {
-                // hybrid flow (code id_token). Two possible cases:
-                // 1. The code is not for this client, ie. will be sent to a
-                //    webservice that performs the id token verification and token
-                //    exchange
-                // 2. The code is for this client and, for security reasons, the
-                //    application developer must verify the id_token signature and
-                //    c_hash before calling the token endpoint
-                OIDAuthState *authState = [[OIDAuthState alloc]
-                                           initWithAuthorizationResponse:authorizationResponse];
-                callback(authState, authorizationError);
-            }
-        } else {
-            callback(nil, authorizationError);
-        }
-    }];
-    return authFlowSession;
-}
-
-- (void)didCompleteAuthorization:(OIDAuthState *)authorization error:(NSError *)error{
-    NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
-    if(authorization){
-        [dictionary setObject:authorization forKey:MCHAppAuthManagerAuthKey];
-    }
-    if(error){
-        [dictionary setObject:error forKey:MCHAppAuthManagerErrorKey];
-    }
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [[NSNotificationCenter defaultCenter] postNotificationName:MCHAppAuthManagerAuthDidChange
-                                                            object:self
-                                                          userInfo:dictionary];
-    });
+    return flow;
 }
 
 @end
 
-
-@implementation MCHOIDTokenExchangeRequest 
-
-- (NSURLRequest *)URLRequest {
-    NSURL *tokenRequestURL = self.configuration.tokenEndpoint;
-    NSMutableURLRequest *URLRequest = [[NSURLRequest requestWithURL:tokenRequestURL] mutableCopy];
-    URLRequest.HTTPMethod = @"POST";
-    [URLRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    
-    NSMutableDictionary *bodyParams = [NSMutableDictionary new];
-    if (self.clientID) {
-        [bodyParams setObject:self.clientID forKey:@"client_id"];
-    }
-    if (self.grantType) {
-        [bodyParams setObject:self.grantType forKey:@"grant_type"];
-    }
-    if (self.refreshToken) {
-        [bodyParams setObject:self.refreshToken forKey:@"refresh_token"];
-    }
-    if (self.clientSecret) {
-        [bodyParams setObject:self.clientSecret forKey:@"client_secret"];
-    }
-    if (self.scope) {
-        [bodyParams setObject:self.scope forKey:@"scope"];
-    }
-    if (self.redirectURL.absoluteString) {
-        [bodyParams setObject:[self.redirectURL.absoluteString stringByReplacingOccurrencesOfString:@"/" withString:@"\\/"] forKey:@"redirect_uri"];
-    }
-    if (self.authorizationCode) {
-        [bodyParams setObject:self.authorizationCode forKey:@"code"];
-    }
-    if (self.codeVerifier) {
-        [bodyParams setObject:self.codeVerifier forKey:@"code_verifier"];
-    }
-    if (self.additionalParameters){
-        [bodyParams addEntriesFromDictionary:self.additionalParameters];
-    }
- 
-    NSData *body = [MCHNetworkClient createJSONBodyWithParameters:bodyParams];
-    [URLRequest setHTTPBody:body];
-    [URLRequest addValue:[NSString stringWithFormat:@"%@",@(body.length)] forHTTPHeaderField:@"Content-Length"];
-    [MCHNetworkClient printRequest:URLRequest];
-    return URLRequest;
-}
-
-
-@end

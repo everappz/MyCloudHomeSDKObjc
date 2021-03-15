@@ -59,6 +59,9 @@ extern NSString * const kMCHLimit;
 extern NSUInteger const kMCHDefaultLimit;
 
 @protocol MCHEndpointConfiguration;
+@class WKWebView;
+@class MCHAuthState;
+@class MCHAccessToken;
 
 typedef void(^MCHAPIClientDictionaryCompletionBlock)(NSDictionary *_Nullable dictionary, NSError * _Nullable error);
 typedef void(^MCHAPIClientArrayCompletionBlock)(NSArray<NSDictionary *> * _Nullable array, NSError * _Nullable error);
@@ -69,7 +72,23 @@ typedef void(^MCHAPIClientDidReceiveResponseBlock)(NSURLResponse * _Nullable res
 typedef void(^MCHAPIClientProgressBlock)(float progress);
 typedef void(^MCHAPIClientURLCompletionBlock)(NSURL *_Nullable location, NSError * _Nullable error);
 typedef void(^MCHAPIClientEndpointAndAccessTokenCompletionBlock)(id<MCHEndpointConfiguration> _Nullable endpointConfiguration,
-                                                                 NSString * _Nullable accessToken,
+                                                                 MCHAccessToken * _Nullable accessToken,
                                                                  NSError * _Nullable error);
+
+typedef void(^MCHAuthorizationWebViewCoordinatorLoadingBlock)(WKWebView *webView);
+typedef void(^MCHAuthorizationWebViewCoordinatorErrorBlock)(WKWebView *webView, NSError *webViewError);
+typedef void(^MCHAuthorizationWebViewCoordinatorCompletionBlock)(WKWebView *webView, NSURL * _Nullable webViewRedirectURL, NSError * _Nullable error);
+
+typedef void (^MCHAppAuthManagerAuthorizationBlock)(MCHAuthState *_Nullable authState,
+                                                    id<MCHEndpointConfiguration>_Nullable endpointConfiguration,
+                                                    NSError *_Nullable error);
+
+typedef void (^MCHAccessTokenUpdateBlock)(NSString *_Nullable accessToken,
+                                          NSString *_Nullable idToken,
+                                          NSError *_Nullable error);
+
+typedef void (^MCHAccessTokenGetBlock)(MCHAccessToken *_Nullable accessToken,
+                                       NSError *_Nullable error);
+
 
 NS_ASSUME_NONNULL_END

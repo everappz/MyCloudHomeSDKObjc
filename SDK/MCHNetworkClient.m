@@ -14,6 +14,8 @@
 #import "MCHUser.h"
 #import "MCHAPIClientRequest.h"
 #import "MCHRequestsCache.h"
+#import "MCHAccessToken.h"
+
 
 @interface MCHNetworkClient()
 <
@@ -58,7 +60,7 @@ NSURLSessionDownloadDelegate
 
 - (NSMutableURLRequest *_Nullable)GETRequestWithURL:(NSURL *)requestURL
                                         contentType:(NSString *)contentType
-                                        accessToken:(NSString * _Nullable)accessToken{
+                                        accessToken:(MCHAccessToken * _Nullable)accessToken{
     return [self requestWithURL:requestURL
                          method:@"GET"
                     contentType:contentType
@@ -67,7 +69,7 @@ NSURLSessionDownloadDelegate
 
 - (NSMutableURLRequest *_Nullable)DELETERequestWithURL:(NSURL *)requestURL
                                            contentType:(NSString *)contentType
-                                           accessToken:(NSString * _Nullable)accessToken{
+                                           accessToken:(MCHAccessToken * _Nullable)accessToken{
     return [self requestWithURL:requestURL
                          method:@"DELETE"
                     contentType:contentType
@@ -76,7 +78,7 @@ NSURLSessionDownloadDelegate
 
 - (NSMutableURLRequest *_Nullable)POSTRequestWithURL:(NSURL *)requestURL
                                          contentType:(NSString *)contentType
-                                         accessToken:(NSString * _Nullable)accessToken{
+                                         accessToken:(MCHAccessToken * _Nullable)accessToken{
     return [self requestWithURL:requestURL
                          method:@"POST"
                     contentType:contentType
@@ -85,7 +87,7 @@ NSURLSessionDownloadDelegate
 
 - (NSMutableURLRequest *_Nullable)PUTRequestWithURL:(NSURL *)requestURL
                                         contentType:(NSString *)contentType
-                                        accessToken:(NSString * _Nullable)accessToken{
+                                        accessToken:(MCHAccessToken * _Nullable)accessToken{
     return [self requestWithURL:requestURL
                          method:@"PUT"
                     contentType:contentType
@@ -95,13 +97,13 @@ NSURLSessionDownloadDelegate
 - (NSMutableURLRequest *_Nullable)requestWithURL:(NSURL *)requestURL
                                           method:(NSString *)method
                                      contentType:(NSString *)contentType
-                                     accessToken:(NSString * _Nullable)accessToken{
+                                     accessToken:(MCHAccessToken * _Nullable)accessToken{
     NSParameterAssert(requestURL);
     if(requestURL){
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:requestURL];
         [request setHTTPMethod:method];
         if(accessToken){
-            [request addValue:[NSString stringWithFormat:@"Bearer %@",accessToken] forHTTPHeaderField:@"Authorization"];
+            [request addValue:[NSString stringWithFormat:@"%@ %@",accessToken.type,accessToken.token] forHTTPHeaderField:@"Authorization"];
         }
         if(contentType){
             [request addValue:contentType forHTTPHeaderField:@"Content-Type"];
@@ -352,6 +354,55 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite{
     }];
     [httpBody appendData:[@"}" dataUsingEncoding:NSUTF8StringEncoding]];
     return httpBody;
+}
+
++ (NSMutableArray<NSURLQueryItem *> *)queryItemsFromParameters:(NSDictionary<NSString *,NSString *> *)params {
+    NSMutableArray<NSURLQueryItem *> *queryParameters = [NSMutableArray array];
+    [params enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, NSString * _Nonnull obj, BOOL * _Nonnull stop) {
+        NSURLQueryItem *item = [NSURLQueryItem queryItemWithName:key value:obj];
+        [queryParameters addObject:item];
+    }];
+    return queryParameters;
+}
+
++ (NSString *)URLEncodedParameters:(NSDictionary<NSString *,NSString *> *)params {
+    NSURLComponents *components = [[NSURLComponents alloc] init];
+    components.queryItems = [self queryItemsFromParameters:params];
+    NSString *encodedQuery = components.percentEncodedQuery;
+    // NSURLComponents.percentEncodedQuery creates a validly escaped URL query component, but
+    // doesn't encode the '+' leading to potential ambiguity with application/x-www-form-urlencoded
+    // encoding. Percent encodes '+' to avoid this ambiguity.
+    encodedQuery = [encodedQuery stringByReplacingOccurrencesOfString:@"+" withString:@"%2B"];
+    return encodedQuery;
+}
+
++ (NSURL *)URLByReplacingQueryParameters:(NSDictionary<NSString *,NSString *> *)queryParameters inURL:(NSURL *)originalURL {
+    NSURLComponents *components =
+    [NSURLComponents componentsWithURL:originalURL resolvingAgainstBaseURL:NO];
+    
+    // Replaces encodedQuery component
+    NSString *queryString = [self URLEncodedParameters:queryParameters];
+    components.percentEncodedQuery = queryString;
+    
+    NSURL *URLWithParameters = components.URL;
+    return URLWithParameters;
+}
+
++ (NSDictionary *_Nullable)queryDictionaryFromURL:(NSURL *)URL{
+    NSMutableDictionary *queryDictionary = [NSMutableDictionary new];
+    NSURLComponents *components =
+    [NSURLComponents componentsWithURL:URL resolvingAgainstBaseURL:NO];
+    // As OAuth uses application/x-www-form-urlencoded encoding, interprets '+' as a space
+    // in addition to regular percent decoding. https://url.spec.whatwg.org/#urlencoded-parsing
+    components.percentEncodedQuery =
+    [components.percentEncodedQuery stringByReplacingOccurrencesOfString:@"+"
+                                                              withString:@"%20"];
+    // NB. @c queryItems are already percent decoded
+    NSArray<NSURLQueryItem *> *queryItems = components.queryItems;
+    for (NSURLQueryItem *queryItem in queryItems) {
+        [queryDictionary setObject:queryItem.value forKey:queryItem.name];
+    }
+    return queryDictionary;
 }
 
 + (NSString *)createMultipartFormBoundary{

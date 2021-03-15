@@ -7,21 +7,11 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "MCHAuthorizationUserAgentWebView.h"
+#import "MCHConstants.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern NSString * const MCHAppAuthManagerAuthDidChange;
-extern NSString * const MCHAppAuthManagerAuthKey;
-extern NSString * const MCHAppAuthManagerErrorKey;
-
-@class WKWebView;
-@protocol MCHEndpointConfiguration;
-@class OIDAuthState;
-
-typedef void (^MCHAppAuthManagerAuthorizationCallback)(OIDAuthState *_Nullable authState,
-                                                       id<MCHEndpointConfiguration>_Nullable endpointConfiguration,
-                                                       NSError *_Nullable error);
+@class MCHAppAuthFlow;
 
 @interface MCHAppAuthManager : NSObject
 
@@ -34,29 +24,21 @@ typedef void (^MCHAppAuthManagerAuthorizationCallback)(OIDAuthState *_Nullable a
 + (void)setSharedManagerWithClientID:(NSString *)clientID
                         clientSecret:(NSString *)clientSecret
                          redirectURI:(NSString *)redirectURI
-                              scopes:(NSArray<NSString *>*)scopes
-      authorizationRequestParameters:(nullable NSDictionary<NSString *, NSString *> *)authorizationRequestAdditionalParameters
-             tokenExchangeParameters:(nullable NSDictionary<NSString *, NSString *> *)tokenExchangeAdditionalParameters
-            refreshRequestParameters:(nullable NSDictionary<NSString *, NSString *> *)refreshRequestParameters;
+                              scopes:(NSArray<NSString *> *)scopes;
 
 @property(nonatomic, copy, readonly) NSString *clientID;
 @property(nonatomic, copy, readonly) NSString *clientSecret;
 @property(nonatomic, copy, readonly) NSString *redirectURI;
-@property(nonatomic, strong, readonly) NSArray *scopes;
-@property(nonatomic, strong, readonly, nullable) NSDictionary<NSString *, NSString *> *authorizationRequestAdditionalParameters;
-@property(nonatomic, strong, readonly, nullable) NSDictionary<NSString *, NSString *> *tokenExchangeAdditionalParameters;
-@property(nonatomic, strong, readonly, nullable) NSDictionary<NSString *, NSString *> *refreshRequestParameters;
+@property(nonatomic, copy, readonly) NSArray<NSString *> *scopes;
 
 + (instancetype)new NS_UNAVAILABLE;
 - (instancetype)init NS_UNAVAILABLE;
 
-- (BOOL)applicationOpenURL:(NSURL *)url;
-
-- (void)authWithAutoCodeExchangeFromWebView:(WKWebView *)webView
-                webViewDidStartLoadingBlock:(MCHAuthorizationUserAgentWebViewLoadingBlock) webViewDidStartLoadingBlock
-               webViewDidFinishLoadingBlock:(MCHAuthorizationUserAgentWebViewLoadingBlock) webViewDidFinishLoadingBlock
-               webViewDidFailWithErrorBlock:(MCHAuthorizationUserAgentWebViewErrorBlock) webViewDidFailWithErrorBlock
-                            completionBlock:(MCHAppAuthManagerAuthorizationCallback)completionBlock;
+- (MCHAppAuthFlow *_Nullable )authFlowWithAutoCodeExchangeFromWebView:(WKWebView *)webView
+                                          webViewDidStartLoadingBlock:(MCHAuthorizationWebViewCoordinatorLoadingBlock)webViewDidStartLoadingBlock
+                                         webViewDidFinishLoadingBlock:(MCHAuthorizationWebViewCoordinatorLoadingBlock)webViewDidFinishLoadingBlock
+                                         webViewDidFailWithErrorBlock:(MCHAuthorizationWebViewCoordinatorErrorBlock)webViewDidFailWithErrorBlock
+                                                      completionBlock:(MCHAppAuthManagerAuthorizationBlock)completionBlock;
 
 @end
 

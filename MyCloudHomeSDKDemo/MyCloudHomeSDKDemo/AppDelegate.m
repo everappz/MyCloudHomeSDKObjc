@@ -7,7 +7,7 @@
 //
 
 #import "AppDelegate.h"
-#import <MyCloudHomeSDKObjc/MCHAppAuthManager.h>
+#import <MyCloudHomeSDKObjc/MyCloudHomeSDKObjc.h>
 
 //This temporary trial CSID is valid for short intervals of time and is changed regularly.
 //It cannot be used as part of your released apps, since it will be disabled without notice and has a lifecycle of approximately 30 days:

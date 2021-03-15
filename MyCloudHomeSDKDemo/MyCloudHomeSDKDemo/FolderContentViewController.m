@@ -9,14 +9,7 @@
 #import "FolderContentViewController.h"
 #import "MyCloudHomeHelper.h"
 #import "LSOnlineFile.h"
-#import <MyCloudHomeSDKObjc/MCHAppAuthManager.h>
-#import <MyCloudHomeSDKObjc/MCHAPIClient.h>
-#import <MyCloudHomeSDKObjc/MCHAppAuthProvider.h>
-#import <MyCloudHomeSDKObjc/MCHConstants.h>
-#import <MyCloudHomeSDKObjc/MCHUser.h>
-#import <MyCloudHomeSDKObjc/MCHDevice.h>
-#import <MyCloudHomeSDKObjc/MCHAPIClientCache.h>
-#import <MyCloudHomeSDKObjc/MCHFile.h>
+#import <MyCloudHomeSDKObjc/MyCloudHomeSDKObjc.h>
 
 
 NSString * const kTableViewCellIdentifier = @"kTableViewCellIdentifier";

@@ -7,28 +7,27 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "MCHConstants.h"
 
-@class OIDAuthState;
+
+@class MCHAuthState;
 
 NS_ASSUME_NONNULL_BEGIN
 
 extern NSString * const MCHAppAuthProviderDidChangeState;
 
-extern NSString * const MCHAppAuthProviderUseCustomState;
-
 @interface MCHAppAuthProvider : NSObject
 
 - (instancetype)initWithIdentifier:(NSString *)identifier
-                          userInfo:(NSDictionary *_Nullable)userInfo
-                             state:(OIDAuthState *)authState
-            refreshTokenParameters:(NSDictionary *_Nullable)refreshTokenParameters;
+                             state:(MCHAuthState *)authState;
 
-@property(nonatomic, strong, readonly) OIDAuthState *authState;
+@property(nonatomic, strong, readonly) MCHAuthState *authState;
+
 @property(nonatomic, copy, readonly) NSString *identifier;
-@property(nonatomic, copy, readonly, nullable) NSDictionary *userInfo;
-@property(nonatomic, copy, readonly, nullable) NSDictionary *refreshTokenParameters;
 
-- (void)getAccessTokenWithCompletionBlock:(void (^)(NSString * _Nullable accessToken, NSError * _Nullable error))completion;
+- (void)getAccessTokenWithCompletionBlock:(MCHAccessTokenGetBlock)completion;
+
+- (NSURLSessionDataTask * _Nullable)updateAccessTokenWithCompletionBlock:(MCHAccessTokenUpdateBlock)completion;
 
 @end
 

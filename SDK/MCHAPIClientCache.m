@@ -10,6 +10,7 @@
 #import "MCHAppAuthProvider.h"
 #import "MCHAppAuthManager.h"
 #import "MCHAPIClient.h"
+#import "MCHAuthState.h"
 
 @interface MCHAPIClientCache()
 
@@ -105,8 +106,7 @@
 }
 
 - (MCHAPIClient *_Nullable)createClientForIdentifier:(NSString *_Nonnull)identifier
-                                            userInfo:(NSDictionary *_Nullable)userInfo
-                                           authState:(OIDAuthState *_Nonnull)authState
+                                           authState:(MCHAuthState *_Nonnull)authState
                                 sessionConfiguration:(NSURLSessionConfiguration * _Nullable)URLSessionConfiguration
 {
     
@@ -120,15 +120,8 @@
     MCHAppAuthProvider *authProvider = [self authProviderForIdentifier:identifier];
     NSParameterAssert(authProvider == nil);
     if(authProvider == nil) {
-        NSMutableDictionary *resultUserInfo = [NSMutableDictionary new];
-        if (userInfo){
-            [resultUserInfo addEntriesFromDictionary:userInfo];
-        }
-        [resultUserInfo setObject:@(YES) forKey:MCHAppAuthProviderUseCustomState];
         authProvider = [[MCHAppAuthProvider alloc] initWithIdentifier:identifier
-                                                             userInfo:resultUserInfo
-                                                                state:authState
-                                               refreshTokenParameters:[[MCHAppAuthManager sharedManager] refreshRequestParameters]];
+                                                                state:authState];
         if(authProvider){
             [self setAuthProvider:authProvider forIdentifier:identifier];
         }
@@ -148,20 +141,17 @@
     return client;
 }
 
-- (void)authStateChanged:(OIDAuthState *)authState
+- (void)authStateChanged:(MCHAuthState *)authState
            forIdentifier:(NSString *)identifier{
     NSParameterAssert(authState);
     NSParameterAssert(identifier);
     if(authState == nil || identifier == nil){
         return;
     }
-    
     MCHAppAuthProvider *oldProvider = [self authProviderForIdentifier:identifier];
     NSParameterAssert(oldProvider);
     MCHAppAuthProvider *authProvider = [[MCHAppAuthProvider alloc] initWithIdentifier:identifier
-                                                                             userInfo:oldProvider.userInfo
-                                                                                state:authState
-                                                               refreshTokenParameters:oldProvider.refreshTokenParameters];
+                                                                                state:authState];
     NSParameterAssert(authProvider);
     if(authProvider){
         [self setAuthProvider:authProvider forIdentifier:identifier];
