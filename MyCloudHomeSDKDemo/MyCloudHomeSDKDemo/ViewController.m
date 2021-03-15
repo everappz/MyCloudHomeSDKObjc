@@ -24,8 +24,59 @@ NSString * const MCHAuthKey = @"MCHAuthKey";
 
 @implementation ViewController
 
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        [self customInit];
+    }
+    return self;
+}
 
-- (void)viewWillAppear:(BOOL)animated{
+
+- (instancetype)initWithCoder:(NSCoder *)coder
+{
+    self = [super initWithCoder:coder];
+    if (self) {
+        [self customInit];
+    }
+    return self;
+}
+
+- (void)customInit
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(authProviderDidChangeNotification:)
+                                                 name:MCHAppAuthProviderDidChangeState
+                                               object:nil];
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)authProviderDidChangeNotification:(NSNotification *)notification
+{
+    MCHAppAuthProvider *provider = notification.object;
+    NSParameterAssert([provider isKindOfClass:[MCHAppAuthProvider class]]);
+    if([provider isKindOfClass:[MCHAppAuthProvider class]]){
+        NSMutableDictionary *authResult = [[self loadAuth] mutableCopy];
+        MCHAuthState *authState = provider.authState;
+        NSParameterAssert(authState);
+        if (authState) {
+            NSData *authData = [NSKeyedArchiver archivedDataWithRootObject:authState
+                                                     requiringSecureCoding:YES
+                                                                     error:nil];
+            NSParameterAssert(authData);
+            [authResult setObject:authData?:[NSData data] forKey:MCHAuthDataKey];
+        }
+        [self saveAuth:authResult];
+    }
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
     [super viewWillAppear:animated];
     
     [self.stackView removeFromSuperview];
@@ -67,7 +118,8 @@ NSString * const MCHAuthKey = @"MCHAuthKey";
     }
 }
 
-- (void)actionStart:(id)sender{
+- (void)actionStart:(id)sender
+{
     MyCloudHomeAuthViewController *authController = [MyCloudHomeAuthViewController new];
     authController.delegate = self;
     __weak typeof (authController) weakAuthViewController = authController;
@@ -76,12 +128,15 @@ NSString * const MCHAuthKey = @"MCHAuthKey";
     }];
 }
 
-- (void)actionContinue:(id)sender{
+- (void)actionContinue:(id)sender
+{
     NSDictionary *savedAuth = [self loadAuth];
     [self showFolderContentWithAuth:savedAuth];
 }
 
-- (void)MCHAuthViewController:(MyCloudHomeAuthViewController *)viewController didFailWithError:(NSError *)error{
+- (void)MCHAuthViewController:(MyCloudHomeAuthViewController *)viewController
+             didFailWithError:(NSError *)error
+{
     dispatch_async(dispatch_get_main_queue(), ^{
         __weak typeof (self) weakSelf = self;
         [self dismissViewControllerAnimated:YES completion:^{
@@ -95,12 +150,14 @@ NSString * const MCHAuthKey = @"MCHAuthKey";
 }
 
 - (void)MCHAuthViewController:(MyCloudHomeAuthViewController *)viewController
-           didSuccessWithAuth:(NSDictionary *)auth{
+           didSuccessWithAuth:(NSDictionary *)auth
+{
     [self saveAuth:auth];
     [self showFolderContentWithAuth:auth];
 }
 
-- (void)showFolderContentWithAuth:(NSDictionary *)auth{
+- (void)showFolderContentWithAuth:(NSDictionary *)auth
+{
     dispatch_async(dispatch_get_main_queue(), ^{
         __weak typeof (self) weakSelf = self;
         [self dismissViewControllerAnimated:YES completion:^{
@@ -120,7 +177,8 @@ NSString * const MCHAuthKey = @"MCHAuthKey";
     });
 }
 
-- (void)saveAuth:(NSDictionary *)auth{
+- (void)saveAuth:(NSDictionary *)auth
+{
     if (auth) {
         [[NSUserDefaults standardUserDefaults] setObject:auth forKey:MCHAuthKey];
     }
@@ -130,7 +188,8 @@ NSString * const MCHAuthKey = @"MCHAuthKey";
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
-- (nullable NSDictionary *)loadAuth{
+- (nullable NSDictionary *)loadAuth
+{
     return [[NSUserDefaults standardUserDefaults] objectForKey:MCHAuthKey];
 }
 

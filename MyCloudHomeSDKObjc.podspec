@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'MyCloudHomeSDKObjc'
-  s.version      = '1.0.7'
+  s.version      = '1.0.8'
   s.summary      = 'A pleasant wrapper around the WD My Cloud Home API.'
   s.homepage     = 'https://github.com/leshkoapps/MyCloudHomeSDKObjc.git'
   s.author       = { 'Everappz' => 'https://everapz.com' }
@@ -11,5 +11,4 @@ Pod::Spec.new do |s|
   s.license = 'MIT'
   s.framework    = 'Foundation', 'WebKit'
   s.dependency 'ISO8601DateFormatter'
-  s.dependency 'AppAuth'
 end

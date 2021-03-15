@@ -31,23 +31,43 @@ NSString * const MCHErrorDomain = @"MCHErrorDomain";
 
 - (BOOL)MCH_isAuthError{
     const BOOL isCannotGetAccessTokenError = [self.domain isEqualToString:MCHErrorDomain] && self.code == MCHErrorCodeCannotGetAccessToken;
+    if (isCannotGetAccessTokenError) {
+        return YES;
+    }
+    
     const BOOL isAccessTokenExpiredError = [self.domain isEqualToString:MCHErrorDomain] && self.code == MCHErrorCodeAccessTokenExpired;
+    if (isAccessTokenExpiredError) {
+        return YES;
+    }
+    
     const BOOL isCannotUpdateAccessTokenError = [self.domain isEqualToString:MCHErrorDomain] && self.code == MCHErrorCodeCannotUpdateAccessToken;
+    if (isCannotUpdateAccessTokenError) {
+        return YES;
+    }
+    
     const BOOL isUnauthorizedError = [self.domain isEqualToString:NSURLErrorDomain] && self.code == 401;
+    if (isUnauthorizedError) {
+        return YES;
+    }
+    
     const BOOL isForbiddenError = [self.domain isEqualToString:NSURLErrorDomain] && self.code == 403;
-
+    if (isForbiddenError) {
+        return YES;
+    }
+    
     NSError *underlyingError = [self.userInfo objectForKey:NSUnderlyingErrorKey];
     
     const BOOL isUnderlyingErrorUnauthorized = [underlyingError.domain isEqualToString:NSURLErrorDomain] && underlyingError.code == 401;
-    const BOOL isUnderlyingErrorForbidden = [underlyingError.domain isEqualToString:NSURLErrorDomain] && underlyingError.code == 403;
+    if (isUnderlyingErrorUnauthorized) {
+        return YES;
+    }
     
-    return isCannotGetAccessTokenError ||
-    isAccessTokenExpiredError ||
-    isCannotUpdateAccessTokenError ||
-    isUnauthorizedError ||
-    isForbiddenError ||
-    isUnderlyingErrorUnauthorized ||
-    isUnderlyingErrorForbidden;
+    const BOOL isUnderlyingErrorForbidden = [underlyingError.domain isEqualToString:NSURLErrorDomain] && underlyingError.code == 403;
+    if (isUnderlyingErrorForbidden) {
+        return YES;
+    }
+    
+    return NO;
 }
 
 @end

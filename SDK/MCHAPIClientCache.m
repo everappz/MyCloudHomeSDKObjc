@@ -119,10 +119,10 @@
     
     MCHAppAuthProvider *authProvider = [self authProviderForIdentifier:identifier];
     NSParameterAssert(authProvider == nil);
-    if(authProvider == nil) {
+    if (authProvider == nil) {
         authProvider = [[MCHAppAuthProvider alloc] initWithIdentifier:identifier
                                                                 state:authState];
-        if(authProvider){
+        if (authProvider) {
             [self setAuthProvider:authProvider forIdentifier:identifier];
         }
     }
@@ -148,17 +148,7 @@
     if(authState == nil || identifier == nil){
         return;
     }
-    MCHAppAuthProvider *oldProvider = [self authProviderForIdentifier:identifier];
-    NSParameterAssert(oldProvider);
-    MCHAppAuthProvider *authProvider = [[MCHAppAuthProvider alloc] initWithIdentifier:identifier
-                                                                                state:authState];
-    NSParameterAssert(authProvider);
-    if(authProvider){
-        [self setAuthProvider:authProvider forIdentifier:identifier];
-    }
-    MCHAPIClient *apiClient = [self clientForIdentifier:identifier];
-    NSParameterAssert(apiClient);
-    [apiClient updateAuthProvider:authProvider];
+    NSLog(@"authStateChanged: %@ forIdentifier: %@",authState.accessToken,identifier);
 }
 
 - (void)authProviderDidChangeNotification:(NSNotification *)notification{

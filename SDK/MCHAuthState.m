@@ -76,6 +76,18 @@
     }
 }
 
+- (void)processTokenUpdateCompletionBlocks{
+    @synchronized (self.tokenUpdateCompletionBlocks) {
+        NSString *accessToken = self.accessToken;
+        NSString *idToken = self.idToken;
+        NSError *tokenUpdateError = self.tokenUpdateError;
+        for (MCHAccessTokenUpdateBlock block in self.tokenUpdateCompletionBlocks){
+            block(accessToken,idToken,tokenUpdateError);
+        }
+        [self.tokenUpdateCompletionBlocks removeAllObjects];
+    }
+}
+
 #pragma mark - NSSecureCoding
 
 + (BOOL)supportsSecureCoding {
@@ -125,11 +137,9 @@
     NSNumber *expires_in = [MCHObject numberForKey:@"expires_in" inDictionary:dictionary];
     NSString *id_token = [MCHObject stringForKey:@"id_token" inDictionary:dictionary];
     NSString *refresh_token = [MCHObject stringForKey:@"refresh_token" inDictionary:dictionary];
-    //NSString *scope = [MCHObject stringForKey:@"scope" inDictionary:dictionary];
     NSString *token_type = [MCHObject stringForKey:@"token_type" inDictionary:dictionary];
     
     NSParameterAssert(access_token);
-    NSParameterAssert(refresh_token);
     
     NSDate *tokenExpireDate = nil;
     if (expires_in && expires_in.longLongValue > 0){
@@ -156,6 +166,8 @@
     }
     
     self.tokenUpdateError = error;
+    
+    [self processTokenUpdateCompletionBlocks];
     
     if ([self.stateChangeDelegate respondsToSelector:@selector(MCHAuthStateDidChange:)]){
         [self.stateChangeDelegate MCHAuthStateDidChange:self];
