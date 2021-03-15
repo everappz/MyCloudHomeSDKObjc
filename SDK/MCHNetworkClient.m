@@ -103,7 +103,19 @@ NSURLSessionDownloadDelegate
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:requestURL];
         [request setHTTPMethod:method];
         if(accessToken){
-            [request addValue:[NSString stringWithFormat:@"%@ %@",accessToken.type,accessToken.token] forHTTPHeaderField:@"Authorization"];
+            
+            NSString *type = accessToken.type;
+            NSString *token = accessToken.token;
+            
+            NSParameterAssert(token);
+            
+            NSParameterAssert(type);
+            NSParameterAssert(type.length > 0);
+            if (type == nil || type.length == 0){
+                type = @"Bearer";
+            }
+            
+            [request addValue:[NSString stringWithFormat:@"%@ %@",type,token] forHTTPHeaderField:@"Authorization"];
         }
         if(contentType){
             [request addValue:contentType forHTTPHeaderField:@"Content-Type"];

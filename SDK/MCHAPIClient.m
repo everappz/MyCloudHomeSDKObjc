@@ -17,6 +17,10 @@
 #import "MCHAPIClientRequest.h"
 #import "MCHRequestsCache.h"
 
+#define MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest) if (weak_clientRequest == nil || weak_clientRequest.isCancelled){ return; }
+
+
+
 NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
 
 @interface MCHAPIClient()
@@ -150,12 +154,18 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             completion(dictionary,error);
         }
     };
+    
+    void(^retryBlock)(void) = ^{
+        [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+            MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest);
+            weak_clientRequest.internalRequest = [weakSelf _getEndpointConfigurationWithCompletionBlock:resultCompletion];
+        }];
+    };
+    
     id<MCHAPIClientCancellableRequest> internalRequest =
     (id<MCHAPIClientCancellableRequest>)[self _getEndpointConfigurationWithCompletionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
         if (error.MCH_isTooManyRequestsError) {
-            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
-                weak_clientRequest.internalRequest = [weakSelf _getEndpointConfigurationWithCompletionBlock:resultCompletion];
-            }];
+            retryBlock();
         }
         else {
             resultCompletion(dictionary,error);
@@ -198,11 +208,22 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             completion(dictionary,error);
         }
     };
+    
+    void(^retryBlock)(void) = ^{
+        [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+            MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest);
+            weak_clientRequest.internalRequest = [weakSelf _getUserInfoWithCompletionBlock:resultCompletion];
+        }];
+    };
+    
     id<MCHAPIClientCancellableRequest> internalRequest =
     (id<MCHAPIClientCancellableRequest>)[self _getUserInfoWithCompletionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
         if (error.MCH_isTooManyRequestsError) {
-            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
-                weak_clientRequest.internalRequest = [weakSelf _getUserInfoWithCompletionBlock:resultCompletion];
+            retryBlock();
+        }
+        else if (error.MCH_isAuthError){
+            [weakSelf updateAccessTokenWithCompletionBlock:^{
+                retryBlock();
             }];
         }
         else {
@@ -282,13 +303,24 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             completion(dictionary,error);
         }
     };
+    
+    void(^retryBlock)(void) = ^{
+        [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+            MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest);
+            weak_clientRequest.internalRequest = [weakSelf _getDevicesForUserWithID:userID
+                                                                    completionBlock:resultCompletion];
+        }];
+    };
+    
     id<MCHAPIClientCancellableRequest> internalRequest =
     (id<MCHAPIClientCancellableRequest>)[self _getDevicesForUserWithID:userID
                                                        completionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
         if (error.MCH_isTooManyRequestsError) {
-            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
-                weak_clientRequest.internalRequest = [weakSelf _getDevicesForUserWithID:userID
-                                                                        completionBlock:resultCompletion];
+            retryBlock();
+        }
+        else if (error.MCH_isAuthError){
+            [weakSelf updateAccessTokenWithCompletionBlock:^{
+                retryBlock();
             }];
         }
         else {
@@ -356,13 +388,24 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             completion(dictionary,error);
         }
     };
+    
+    void(^retryBlock)(void) = ^{
+        [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+            MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest);
+            weak_clientRequest.internalRequest = [weakSelf _getDeviceInfoWithID:deviceID
+                                                                completionBlock:resultCompletion];
+        }];
+    };
+    
     id<MCHAPIClientCancellableRequest> internalRequest =
     (id<MCHAPIClientCancellableRequest>)[self _getDeviceInfoWithID:deviceID
                                                    completionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
         if (error.MCH_isTooManyRequestsError) {
-            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
-                weak_clientRequest.internalRequest = [weakSelf _getDeviceInfoWithID:deviceID
-                                                                    completionBlock:resultCompletion];
+            retryBlock();
+        }
+        else if (error.MCH_isAuthError){
+            [weakSelf updateAccessTokenWithCompletionBlock:^{
+                retryBlock();
             }];
         }
         else {
@@ -433,15 +476,26 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             completion(array,error);
         }
     };
+    
+    void(^retryBlock)(void) = ^{
+        [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+            MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest);
+            weak_clientRequest.internalRequest = [weakSelf _getFilesForDeviceWithURL:proxyURL
+                                                                            parentID:parentID
+                                                                     completionBlock:resultCompletion];
+        }];
+    };
+    
     id<MCHAPIClientCancellableRequest> internalRequest =
     (id<MCHAPIClientCancellableRequest>)[self _getFilesForDeviceWithURL:proxyURL
                                                                parentID:parentID
                                                         completionBlock:^(NSArray<NSDictionary *> * _Nullable array, NSError * _Nullable error) {
         if (error.MCH_isTooManyRequestsError) {
-            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
-                weak_clientRequest.internalRequest = [weakSelf _getFilesForDeviceWithURL:proxyURL
-                                                                                parentID:parentID
-                                                                         completionBlock:resultCompletion];
+            retryBlock();
+        }
+        else if (error.MCH_isAuthError){
+            [weakSelf updateAccessTokenWithCompletionBlock:^{
+                retryBlock();
             }];
         }
         else {
@@ -573,15 +627,26 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             completion(dictionary,error);
         }
     };
+    
+    void(^retryBlock)(void) = ^{
+        [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+            MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest);
+            weak_clientRequest.internalRequest = [weakSelf _getFileInfoForDeviceWithURL:proxyURL
+                                                                                 fileID:fileID
+                                                                        completionBlock:resultCompletion];
+        }];
+    };
+    
     id<MCHAPIClientCancellableRequest> internalRequest =
     (id<MCHAPIClientCancellableRequest>)[self _getFileInfoForDeviceWithURL:proxyURL
                                                                     fileID:fileID
                                                            completionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
         if (error.MCH_isTooManyRequestsError) {
-            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
-                weak_clientRequest.internalRequest = [weakSelf _getFileInfoForDeviceWithURL:proxyURL
-                                                                                     fileID:fileID
-                                                                            completionBlock:resultCompletion];
+            retryBlock();
+        }
+        else if (error.MCH_isAuthError){
+            [weakSelf updateAccessTokenWithCompletionBlock:^{
+                retryBlock();
             }];
         }
         else {
@@ -653,15 +718,26 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             completion(error);
         }
     };
+    
+    void(^retryBlock)(void) = ^{
+        [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+            MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest);
+            weak_clientRequest.internalRequest = [weakSelf _deleteFileForDeviceWithURL:proxyURL
+                                                                                fileID:fileID
+                                                                       completionBlock:resultCompletion];
+        }];
+    };
+    
     id<MCHAPIClientCancellableRequest> internalRequest =
     (id<MCHAPIClientCancellableRequest>)[self _deleteFileForDeviceWithURL:proxyURL
                                                                    fileID:fileID
                                                           completionBlock:^(NSError * _Nullable error) {
         if (error.MCH_isTooManyRequestsError) {
-            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
-                weak_clientRequest.internalRequest = [weakSelf _deleteFileForDeviceWithURL:proxyURL
-                                                                                    fileID:fileID
-                                                                           completionBlock:resultCompletion];
+            retryBlock();
+        }
+        else if (error.MCH_isAuthError){
+            [weakSelf updateAccessTokenWithCompletionBlock:^{
+                retryBlock();
             }];
         }
         else {
@@ -755,6 +831,17 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             completion(error);
         }
     };
+    
+    void(^retryBlock)(void) = ^{
+        [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+            MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest);
+            weak_clientRequest.internalRequest = [weakSelf _createItemForDeviceWithURL:proxyURL
+                                                                              parentID:parentID
+                                                                              itemName:itemName
+                                                                          itemMIMEType:itemMIMEType
+                                                                       completionBlock:resultCompletion];
+        }];
+    };
     id<MCHAPIClientCancellableRequest> internalRequest =
     (id<MCHAPIClientCancellableRequest>)[self _createItemForDeviceWithURL:proxyURL
                                                                  parentID:parentID
@@ -762,12 +849,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                                              itemMIMEType:itemMIMEType
                                                           completionBlock:^(NSError * _Nullable error) {
         if (error.MCH_isTooManyRequestsError) {
-            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
-                weak_clientRequest.internalRequest = [weakSelf _createItemForDeviceWithURL:proxyURL
-                                                                                  parentID:parentID
-                                                                                  itemName:itemName
-                                                                              itemMIMEType:itemMIMEType
-                                                                           completionBlock:resultCompletion];
+            retryBlock();
+        }
+        else if (error.MCH_isAuthError){
+            [weakSelf updateAccessTokenWithCompletionBlock:^{
+                retryBlock();
             }];
         }
         else {
@@ -878,17 +964,28 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             completion(error);
         }
     };
+    
+    void(^retryBlock)(void) = ^{
+        [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+            MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest);
+            weak_clientRequest.internalRequest = [weakSelf _patchFileForDeviceWithURL:proxyURL
+                                                                               fileID:fileID
+                                                                           parameters:parameters
+                                                                      completionBlock:resultCompletion];
+        }];
+    };
+    
     id<MCHAPIClientCancellableRequest> internalRequest =
     (id<MCHAPIClientCancellableRequest>)[self _patchFileForDeviceWithURL:proxyURL
                                                                   fileID:fileID
                                                               parameters:parameters
                                                          completionBlock:^(NSError * _Nullable error) {
         if (error.MCH_isTooManyRequestsError) {
-            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
-                weak_clientRequest.internalRequest = [weakSelf _patchFileForDeviceWithURL:proxyURL
-                                                                                   fileID:fileID
-                                                                               parameters:parameters
-                                                                          completionBlock:resultCompletion];
+            retryBlock();
+        }
+        else if (error.MCH_isAuthError){
+            [weakSelf updateAccessTokenWithCompletionBlock:^{
+                retryBlock();
             }];
         }
         else {
@@ -965,6 +1062,19 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             completion(error);
         }
     };
+    
+    void(^retryBlock)(void) = ^{
+        [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+            MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest);
+            weak_clientRequest.internalRequest = [weakSelf _getFileContentForDeviceWithURL:proxyURL
+                                                                                    fileID:fileID
+                                                                                parameters:additionalHeaders
+                                                                       didReceiveDataBlock:didReceiveData
+                                                                   didReceiveResponseBlock:didReceiveResponse
+                                                                           completionBlock:resultCompletion];
+        }];
+    };
+    
     id<MCHAPIClientCancellableRequest> internalRequest =
     (id<MCHAPIClientCancellableRequest>)[self _getFileContentForDeviceWithURL:proxyURL
                                                                        fileID:fileID
@@ -973,13 +1083,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                                       didReceiveResponseBlock:didReceiveResponse
                                                               completionBlock:^(NSError * _Nullable error) {
         if (error.MCH_isTooManyRequestsError) {
-            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
-                weak_clientRequest.internalRequest = [weakSelf _getFileContentForDeviceWithURL:proxyURL
-                                                                                        fileID:fileID
-                                                                                    parameters:additionalHeaders
-                                                                           didReceiveDataBlock:didReceiveData
-                                                                       didReceiveResponseBlock:didReceiveResponse
-                                                                               completionBlock:resultCompletion];
+            retryBlock();
+        }
+        else if (error.MCH_isAuthError){
+            [weakSelf updateAccessTokenWithCompletionBlock:^{
+                retryBlock();
             }];
         }
         else {
@@ -1051,15 +1159,26 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             completion(location,error);
         }
     };
+    
+    void(^retryBlock)(void) = ^{
+        [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+            MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest);
+            weak_clientRequest.internalRequest = [weakSelf _getDirectURLForDeviceWithURL:proxyURL
+                                                                                  fileID:fileID
+                                                                         completionBlock:resultCompletion];
+        }];
+    };
+    
     id<MCHAPIClientCancellableRequest> internalRequest =
     (id<MCHAPIClientCancellableRequest>)[self _getDirectURLForDeviceWithURL:proxyURL
                                                                      fileID:fileID
                                                             completionBlock:^(NSURL *_Nullable location, NSError * _Nullable error) {
         if (error.MCH_isTooManyRequestsError) {
-            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
-                weak_clientRequest.internalRequest = [weakSelf _getDirectURLForDeviceWithURL:proxyURL
-                                                                                      fileID:fileID
-                                                                             completionBlock:resultCompletion];
+            retryBlock();
+        }
+        else if (error.MCH_isAuthError){
+            [weakSelf updateAccessTokenWithCompletionBlock:^{
+                retryBlock();
             }];
         }
         else {
@@ -1121,17 +1240,27 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             downloadCompletionBlock(location,error);
         }
     };
+    
+    void(^retryBlock)(void) = ^{
+        [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+            MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest);
+            weak_clientRequest.internalRequest = [weakSelf _downloadFileContentForDeviceWithURL:proxyURL
+                                                                                         fileID:fileID
+                                                                                  progressBlock:progressBlock
+                                                                                completionBlock:resultCompletion];
+        }];
+    };
     id<MCHAPIClientCancellableRequest> internalRequest =
     (id<MCHAPIClientCancellableRequest>)[self _downloadFileContentForDeviceWithURL:proxyURL
                                                                             fileID:fileID
                                                                      progressBlock:progressBlock
                                                                    completionBlock:^(NSURL *_Nullable location, NSError * _Nullable error) {
         if (error.MCH_isTooManyRequestsError) {
-            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
-                weak_clientRequest.internalRequest = [weakSelf _downloadFileContentForDeviceWithURL:proxyURL
-                                                                                             fileID:fileID
-                                                                                      progressBlock:progressBlock
-                                                                                    completionBlock:resultCompletion];
+            retryBlock();
+        }
+        else if (error.MCH_isAuthError){
+            [weakSelf updateAccessTokenWithCompletionBlock:^{
+                retryBlock();
             }];
         }
         else {
@@ -1210,6 +1339,18 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             completionBlock(error);
         }
     };
+    
+    void(^retryBlock)(void) = ^{
+        [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
+            MCHCheckIfClientRequestIsCancelledOrNilAndReturn(weak_clientRequest);
+            weak_clientRequest.internalRequest = [weakSelf _uploadFileContentSeparatelyForDeviceWithURL:proxyURL
+                                                                                                 fileID:fileID
+                                                                                        localContentURL:localContentURL
+                                                                                          progressBlock:progressBlock
+                                                                                        completionBlock:resultCompletion];
+        }];
+    };
+    
     id<MCHAPIClientCancellableRequest> internalRequest =
     (id<MCHAPIClientCancellableRequest>)[self _uploadFileContentSeparatelyForDeviceWithURL:proxyURL
                                                                                     fileID:fileID
@@ -1217,12 +1358,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                                                              progressBlock:progressBlock
                                                                            completionBlock:^(NSError * _Nullable error) {
         if (error.MCH_isTooManyRequestsError) {
-            [MCHAPIClient dispatchAfterRetryTimeoutBlock:^{
-                weak_clientRequest.internalRequest = [weakSelf _uploadFileContentSeparatelyForDeviceWithURL:proxyURL
-                                                                                                     fileID:fileID
-                                                                                            localContentURL:localContentURL
-                                                                                              progressBlock:progressBlock
-                                                                                            completionBlock:resultCompletion];
+            retryBlock();
+        }
+        else if (error.MCH_isAuthError){
+            [weakSelf updateAccessTokenWithCompletionBlock:^{
+                retryBlock();
             }];
         }
         else {

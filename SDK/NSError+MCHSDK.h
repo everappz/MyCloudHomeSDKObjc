@@ -38,6 +38,8 @@ extern  NSString * const MCHErrorDomain;
 
 - (BOOL)MCH_isTooManyRequestsError;
 
+- (BOOL)MCH_isAuthError;
+
 @end
 
 NS_ASSUME_NONNULL_END

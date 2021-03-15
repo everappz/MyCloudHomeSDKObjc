@@ -78,8 +78,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "249"
-            endingLineNumber = "249"
+            startingLineNumber = "270"
+            endingLineNumber = "270"
             landmarkName = "-_getUserInfoWithCompletionBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -142,8 +142,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1378"
-            endingLineNumber = "1378"
+            startingLineNumber = "1518"
+            endingLineNumber = "1518"
             landmarkName = "+dispatchAfterRetryTimeoutBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -158,8 +158,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "195"
-            endingLineNumber = "195"
+            startingLineNumber = "205"
+            endingLineNumber = "205"
             landmarkName = "-getUserInfoWithCompletionBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -174,8 +174,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "353"
-            endingLineNumber = "353"
+            startingLineNumber = "385"
+            endingLineNumber = "385"
             landmarkName = "-getDeviceInfoWithID:completionBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -382,8 +382,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/NSError+MCHSDK.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "28"
-            endingLineNumber = "28"
+            startingLineNumber = "29"
+            endingLineNumber = "29"
             landmarkName = "-MCH_isTooManyRequestsError"
             landmarkType = "7">
          </BreakpointContent>
@@ -430,8 +430,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "260"
-            endingLineNumber = "260"
+            startingLineNumber = "281"
+            endingLineNumber = "281"
             landmarkName = "-_getUserInfoWithCompletionBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -465,6 +465,22 @@
             startingLineNumber = "63"
             endingLineNumber = "63"
             landmarkName = "-getAccessTokenWithCompletionBlock:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "59073A27-56A9-4D73-88D9-7E2CB7C33B32"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "119"
+            endingLineNumber = "119"
+            landmarkName = "-updateAccessTokenWithCompletionBlock:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
