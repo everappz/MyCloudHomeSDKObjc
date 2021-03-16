@@ -528,7 +528,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "146"
             endingLineNumber = "146"
-            landmarkName = "-authStateChanged:forIdentifier:"
+            landmarkName = "-updateAuthState:forIdentifier:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

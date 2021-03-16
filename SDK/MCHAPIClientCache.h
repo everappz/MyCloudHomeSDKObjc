@@ -23,8 +23,8 @@ NS_ASSUME_NONNULL_BEGIN
                                            authState:(MCHAuthState *_Nonnull)authState
                                 sessionConfiguration:(NSURLSessionConfiguration * _Nullable)URLSessionConfiguration;
 
-- (void)authStateChanged:(MCHAuthState *_Nonnull)authState 
-           forIdentifier:(NSString *_Nonnull)identifier;
+- (void)updateAuthState:(MCHAuthState *_Nonnull)authState
+          forIdentifier:(NSString *_Nonnull)identifier;
 
 @end
 

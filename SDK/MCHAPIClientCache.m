@@ -141,16 +141,14 @@
     return client;
 }
 
-- (void)authStateChanged:(MCHAuthState *)authState
-           forIdentifier:(NSString *)identifier{
+- (void)updateAuthState:(MCHAuthState *_Nonnull)authState
+          forIdentifier:(NSString *_Nonnull)identifier{
     NSParameterAssert(authState);
     NSParameterAssert(identifier);
     if(authState == nil || identifier == nil){
         return;
     }
     NSLog(@"authStateChanged: %@ forIdentifier: %@",authState.accessToken,identifier);
-    MCHAppAuthProvider *oldProvider = [self authProviderForIdentifier:identifier];
-    NSParameterAssert(oldProvider);
     MCHAppAuthProvider *authProvider = [[MCHAppAuthProvider alloc] initWithIdentifier:identifier
                                                                                 state:authState];
     NSParameterAssert(authProvider);
