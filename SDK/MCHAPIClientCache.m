@@ -118,7 +118,6 @@
     }
     
     MCHAppAuthProvider *authProvider = [self authProviderForIdentifier:identifier];
-    NSParameterAssert(authProvider == nil);
     if (authProvider == nil) {
         authProvider = [[MCHAppAuthProvider alloc] initWithIdentifier:identifier
                                                                 state:authState];
