@@ -7,6 +7,6 @@ target 'MyCloudHomeSDKDemo' do
 
   # Pods for MyCloudHomeSDKDemo
 
-  pod 'MyCloudHomeSDKObjc', :git => 'https://github.com/leshkoapps/MyCloudHomeSDKObjc', :commit => '678836a109948ddf71dcfdf79920d182762f1969'
+  pod 'MyCloudHomeSDKObjc', :git => 'https://github.com/leshkoapps/MyCloudHomeSDKObjc', :commit => '38b1b17d83a5210e6612e34aac6888625d66c997'
 
 end
