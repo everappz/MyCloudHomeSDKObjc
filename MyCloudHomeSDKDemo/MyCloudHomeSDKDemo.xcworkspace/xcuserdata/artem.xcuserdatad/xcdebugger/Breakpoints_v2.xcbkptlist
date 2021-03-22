@@ -78,8 +78,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "271"
-            endingLineNumber = "271"
+            startingLineNumber = "283"
+            endingLineNumber = "283"
             landmarkName = "-_getUserInfoWithCompletionBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -142,8 +142,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "206"
-            endingLineNumber = "206"
+            startingLineNumber = "218"
+            endingLineNumber = "218"
             landmarkName = "-getUserInfoWithCompletionBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -158,8 +158,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "386"
-            endingLineNumber = "386"
+            startingLineNumber = "398"
+            endingLineNumber = "398"
             landmarkName = "-getDeviceInfoWithID:completionBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -414,8 +414,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "282"
-            endingLineNumber = "282"
+            startingLineNumber = "294"
+            endingLineNumber = "294"
             landmarkName = "-_getUserInfoWithCompletionBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -446,8 +446,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "120"
-            endingLineNumber = "120"
+            startingLineNumber = "132"
+            endingLineNumber = "132"
             landmarkName = "-updateAccessTokenWithCompletionBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -494,8 +494,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "131"
-            endingLineNumber = "131"
+            startingLineNumber = "143"
+            endingLineNumber = "143"
             landmarkName = "-updateAccessTokenWithCompletionBlock:"
             landmarkType = "7">
          </BreakpointContent>
@@ -510,8 +510,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/MCHAPIClient.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "484"
-            endingLineNumber = "484"
+            startingLineNumber = "496"
+            endingLineNumber = "496"
             landmarkName = "-getFilesForDeviceWithURL:parentID:completionBlock:"
             landmarkType = "7">
          </BreakpointContent>

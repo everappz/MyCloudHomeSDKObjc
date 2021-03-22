@@ -22,7 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface MCHEndpointConfigurationBuilder : NSObject
 
-+ (id<MCHEndpointConfiguration>)configurationWithDictionary:(NSDictionary * _Nonnull)dictionary;
++ (nullable id<MCHEndpointConfiguration>)configurationWithDictionary:(NSDictionary * _Nonnull)dictionary;
 
 @end
 

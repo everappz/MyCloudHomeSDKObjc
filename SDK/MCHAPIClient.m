@@ -70,7 +70,13 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             authProvider = strongSelf.authProvider;
         }
         NSCParameterAssert(authProvider);
-        if(authProvider){
+        if (endpointConfiguration == nil){
+            [strongSelf removeCancellableRequest:weak_clientRequest];
+            if(completion){
+                completion(nil,nil,[NSError MCHErrorWithCode:MCHErrorCodeCannotGetEndpointConfiguration]);
+            }
+        }
+        else if(authProvider){
             [authProvider getAccessTokenWithCompletionBlock:^(MCHAccessToken * _Nullable accessToken, NSError * _Nullable error) {
                 [strongSelf removeCancellableRequest:weak_clientRequest];
                 NSError *tokenError = (endpointError != nil) ? endpointError : error;
@@ -101,15 +107,21 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
         [self getEndpointConfigurationWithCompletionBlock:^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
             MCHMakeStrongSelfAndReturnIfNil;
             id<MCHEndpointConfiguration> endpointConfiguration = nil;
+            NSError *resultError = error;
             if(dictionary){
                 endpointConfiguration =
                 [MCHEndpointConfigurationBuilder configurationWithDictionary:dictionary];
+            }
+            if (endpointConfiguration){
                 @synchronized (strongSelf) {
                     strongSelf.endpointConfiguration = endpointConfiguration;
                 }
             }
+            else if (resultError == nil){
+                resultError = [NSError MCHErrorWithCode:MCHErrorCodeCannotGetEndpointConfiguration];
+            }
             weak_clientRequest.internalRequest = nil;
-            getAccessTokenForEndpointConfigurationBlock(endpointConfiguration,error);
+            getAccessTokenForEndpointConfigurationBlock(endpointConfiguration,resultError);
         }];
         clientRequest.internalRequest = internalRequest;
     }

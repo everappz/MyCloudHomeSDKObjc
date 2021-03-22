@@ -57,6 +57,14 @@
 
 - (instancetype)initWithAuthZeroURL:(NSURL *)authZeroURL
                    serviceDeviceURL:(NSURL *)serviceDeviceURL{
+    NSParameterAssert(authZeroURL);
+    NSParameterAssert(serviceDeviceURL);
+    if (authZeroURL == nil){
+        return nil;
+    }
+    if (serviceDeviceURL == nil){
+        return nil;
+    }
     self = [super init];
     if(self){
         self.authZeroURL = authZeroURL;
@@ -70,7 +78,7 @@
 
 @implementation MCHEndpointConfigurationBuilder
 
-+ (id<MCHEndpointConfiguration>)configurationWithDictionary:(NSDictionary * _Nonnull)dictionary{
++ (nullable id<MCHEndpointConfiguration>)configurationWithDictionary:(NSDictionary * _Nonnull)dictionary{
     MCHEndpointServerConfigurationModel *endPointConfigurationServerModel =
     [[MCHEndpointServerConfigurationModel alloc] initWithDictionary:[dictionary objectForKey:kMCHData]];
     NSURL *authURL = endPointConfigurationServerModel.authZeroURL;
