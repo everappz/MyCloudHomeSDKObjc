@@ -101,6 +101,28 @@ typedef BOOL(^MCHAuthorizationWebViewDecidePolicyBlock)(WKWebView *webView,WKNav
         return;
     }
     
+    NSInteger code = [webViewError code];
+    NSString *domain = [webViewError domain];
+    
+    if ([domain isEqualToString:NSURLErrorDomain]) {
+        if (code == NSURLErrorCancelled){
+            return;
+        }
+    } else if ([domain isEqualToString:@"WebKitErrorDomain"]) {
+        if (code == 101){
+            return;
+        }
+        if (code == 102){
+            return;
+        }
+    }
+    
+    if(webViewError && self.authorizationFlowInProgress){
+        [self cleanUp];
+        NSError *error = [NSError MCHErrorWithCode:MCHErrorCodeCanceledAuthorizationFlow];
+        [self failAuthorizationWithError:error];
+    }
+    
     if(webViewError){
         if(self.webViewDidFailWithErrorBlock){
             self.webViewDidFailWithErrorBlock(webView,webViewError);
@@ -110,12 +132,6 @@ typedef BOOL(^MCHAuthorizationWebViewDecidePolicyBlock)(WKWebView *webView,WKNav
         if(self.webViewDidFinishLoadingBlock){
             self.webViewDidFinishLoadingBlock(webView);
         }
-    }
-    
-    if(webViewError && self.authorizationFlowInProgress){
-        [self cleanUp];
-        NSError *error = [NSError MCHErrorWithCode:MCHErrorCodeCanceledAuthorizationFlow];
-        [self failAuthorizationWithError:error];
     }
 }
 
