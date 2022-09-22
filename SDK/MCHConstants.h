@@ -29,6 +29,12 @@ return (value); \
 
 #define MCHMakeStrongSelfAndReturnIfNil MCHMakeStrongReferenceWithNameAndReturnIfNil(weakSelf,strongSelf);
 
+#ifdef DEBUG
+#define MCHLog(...)                                      NSLog(__VA_ARGS__)
+#else
+#define MCHLog(...)                                      {}
+#endif
+
 extern NSString * const kMCHClientConfigURL;
 extern NSString * const kMCHComponentMap;
 extern NSString * const kMCHCloudServiceUrls;

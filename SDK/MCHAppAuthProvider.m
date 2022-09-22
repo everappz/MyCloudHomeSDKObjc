@@ -67,8 +67,9 @@ NSString * const MCHAppAuthProviderDidChangeState = @"MCHAppAuthProviderDidChang
     }
     
     if (tokenUpdateError) {
+        NSError *resultError = [NSError MCHErrorWithCode:MCHErrorCodeCannotGetAccessToken underlyingError:tokenUpdateError];
         if (completion){
-            completion(nil,tokenUpdateError);
+            completion(nil,resultError);
         }
         return;
     }

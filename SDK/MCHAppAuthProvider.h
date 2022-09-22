@@ -21,9 +21,9 @@ extern NSString * const MCHAppAuthProviderDidChangeState;
 - (instancetype)initWithIdentifier:(NSString *)identifier
                              state:(MCHAuthState *)authState;
 
-@property(nonatomic, strong, readonly) MCHAuthState *authState;
+@property (nonatomic, strong, readonly) MCHAuthState *authState;
 
-@property(nonatomic, copy, readonly) NSString *identifier;
+@property (nonatomic, copy, readonly) NSString *identifier;
 
 - (void)getAccessTokenWithCompletionBlock:(MCHAccessTokenGetBlock)completion;
 

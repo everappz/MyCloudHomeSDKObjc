@@ -147,7 +147,7 @@
     if(authState == nil || identifier == nil){
         return;
     }
-    NSLog(@"authStateChanged: %@ forIdentifier: %@",authState.accessToken,identifier);
+    MCHLog(@"authStateChanged: %@ forIdentifier: %@",authState.accessToken,identifier);
     MCHAppAuthProvider *authProvider = [[MCHAppAuthProvider alloc] initWithIdentifier:identifier
                                                                                 state:authState];
     NSParameterAssert(authProvider);
@@ -163,7 +163,7 @@
     MCHAppAuthProvider *provider = notification.object;
     NSParameterAssert([provider isKindOfClass:[MCHAppAuthProvider class]]);
     if([provider isKindOfClass:[MCHAppAuthProvider class]]){
-        NSLog(@"authProviderDidChangeNotification: %@ forIdentifier: %@",provider.authState.accessToken,provider.identifier);
+        MCHLog(@"authProviderDidChangeNotification: %@ forIdentifier: %@",provider.authState.accessToken,provider.identifier);
     }
 }
 

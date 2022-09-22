@@ -18,6 +18,7 @@
 #define APP_MYCLOUD_SECRET_KEY                                  @"JIVemg3A0yEmbvkBGiS7RgnHEkq8veiNf6Rh-_gcNgZYNdJxrm5Z0anC76yfChhV"
 #define APP_MYCLOUD_CALLBACK_URL                                @"http://localhost"
 
+
 @interface AppDelegate ()
 
 @end

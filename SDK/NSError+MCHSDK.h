@@ -35,7 +35,11 @@ extern  NSString * const MCHErrorDomain;
 
 + (instancetype)MCHErrorWithCode:(MCHErrorCode)errorCode;
 
-+ (instancetype)MCHErrorWithCode:(MCHErrorCode)errorCode statusCode:(NSInteger)statusCode;
++ (instancetype)MCHErrorWithCode:(MCHErrorCode)errorCode
+                      statusCode:(NSInteger)statusCode;
+
++ (instancetype)MCHErrorWithCode:(MCHErrorCode)errorCode
+                 underlyingError:(NSError *)underlyingError;
 
 - (BOOL)MCH_isTooManyRequestsError;
 

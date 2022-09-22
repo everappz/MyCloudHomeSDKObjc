@@ -13,9 +13,9 @@
 
 @interface MCHAuthState()
 
-@property(nonatomic, strong) MCHNetworkClient *networkClient;
-@property(atomic, weak) NSURLSessionDataTask *tokenUpdateTask;
-@property(nonatomic,strong)NSMutableArray<MCHAccessTokenUpdateBlock> *tokenUpdateCompletionBlocks;
+@property (nonatomic, strong) MCHNetworkClient *networkClient;
+@property (atomic, weak) NSURLSessionDataTask *tokenUpdateTask;
+@property (nonatomic, strong) NSMutableArray<MCHAccessTokenUpdateBlock> *tokenUpdateCompletionBlocks;
 
 @end
 

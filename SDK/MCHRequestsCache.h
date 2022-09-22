@@ -14,15 +14,17 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface MCHRequestsCache : NSObject
 
-- (MCHAPIClientRequest * _Nullable)cancellableRequestWithURLTaskIdentifier:(NSUInteger)URLTaskIdentifier;
+- (MCHAPIClientRequest * _Nullable)cachedCancellableRequestWithURLTaskIdentifier:(NSUInteger)URLTaskIdentifier;
 
-- (NSArray<MCHAPIClientRequest *> * _Nullable)allCancellableRequestsWithURLTasks;
+- (NSArray<MCHAPIClientRequest *> * _Nullable)allCachedCancellableRequestsWithURLTasks;
 
-- (MCHAPIClientRequest *)createAndAddCancellableRequest;
+- (MCHAPIClientRequest *)createCachedCancellableRequest;
 
-- (void)addCancellableRequest:(id<MCHAPIClientCancellableRequest> _Nonnull)request;
+- (void)addCancellableRequestToCache:(id<MCHAPIClientCancellableRequest> _Nonnull)request;
 
-- (void)removeCancellableRequest:(id<MCHAPIClientCancellableRequest> _Nonnull)request;
+- (void)removeCancellableRequestFromCache:(id<MCHAPIClientCancellableRequest> _Nonnull)request;
+
+- (void)cancelAndRemoveAllCachedRequests;
 
 @end
 

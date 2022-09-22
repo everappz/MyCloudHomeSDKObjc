@@ -25,6 +25,14 @@ NSString * const MCHErrorDomain = @"MCHErrorDomain";
                            userInfo:@{NSUnderlyingErrorKey:underlyingError}];
 }
 
++ (instancetype)MCHErrorWithCode:(MCHErrorCode)errorCode
+                 underlyingError:(NSError *)underlyingError
+{
+    return [NSError errorWithDomain:MCHErrorDomain
+                               code:errorCode
+                           userInfo:underlyingError!=nil?@{NSUnderlyingErrorKey:underlyingError}:nil];
+}
+
 - (BOOL)MCH_isTooManyRequestsError{
     return [self.domain isEqualToString:NSURLErrorDomain] && self.code == 429;
 }

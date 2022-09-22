@@ -366,8 +366,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/NSError+MCHSDK.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "29"
-            endingLineNumber = "29"
+            startingLineNumber = "37"
+            endingLineNumber = "37"
             landmarkName = "-MCH_isTooManyRequestsError"
             landmarkType = "7">
          </BreakpointContent>
@@ -478,8 +478,8 @@
             filePath = "Pods/MyCloudHomeSDKObjc/SDK/NSError+MCHSDK.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "33"
-            endingLineNumber = "33"
+            startingLineNumber = "41"
+            endingLineNumber = "41"
             landmarkName = "-MCH_isAuthError"
             landmarkType = "7">
          </BreakpointContent>

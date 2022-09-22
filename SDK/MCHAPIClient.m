@@ -61,7 +61,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
 
 - (id<MCHAPIClientCancellableRequest>)getAccessTokenAndEndpointConfigurationWithCompletionBlock:(MCHAPIClientEndpointAndAccessTokenCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     void(^getAccessTokenForEndpointConfigurationBlock)(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, NSError * _Nullable endpointError) = ^(id<MCHEndpointConfiguration>_Nullable endpointConfiguration, NSError * _Nullable endpointError){
         MCHMakeStrongSelfAndReturnIfNil;
@@ -71,14 +71,14 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
         }
         NSCParameterAssert(authProvider);
         if (endpointConfiguration == nil){
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             if(completion){
                 completion(nil,nil,[NSError MCHErrorWithCode:MCHErrorCodeCannotGetEndpointConfiguration]);
             }
         }
         else if(authProvider){
             [authProvider getAccessTokenWithCompletionBlock:^(MCHAccessToken * _Nullable accessToken, NSError * _Nullable error) {
-                [strongSelf removeCancellableRequest:weak_clientRequest];
+                [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
                 NSError *tokenError = (endpointError != nil) ? endpointError : error;
                 NSError *resultError = (accessToken == nil) ? tokenError : nil;
                 if(completion){
@@ -87,7 +87,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             }];
         }
         else{
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             if(completion){
                 completion(endpointConfiguration,nil,[NSError MCHErrorWithCode:MCHErrorCodeAuthProviderIsNil]);
             }
@@ -130,7 +130,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
 
 - (id<MCHAPIClientCancellableRequest>)updateAccessTokenWithCompletionBlock:(MCHAPIClientVoidCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAppAuthProvider *authProvider = nil;
     @synchronized (self) {
@@ -140,7 +140,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
     if(authProvider){
         NSURLSessionDataTask *task = [authProvider updateAccessTokenWithCompletionBlock:^(NSString * _Nullable accessToken, NSString * _Nullable idToken, NSError * _Nullable error) {
             MCHMakeStrongSelfAndReturnIfNil;
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             if(completion){
                 completion();
             }
@@ -148,7 +148,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
         clientRequest.internalRequest = (id<MCHAPIClientCancellableRequest>)task;
     }
     else{
-        [self removeCancellableRequest:clientRequest];
+        [self removeCancellableRequestFromCache:clientRequest];
         if(completion){
             completion();
         }
@@ -158,11 +158,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
 
 - (id<MCHAPIClientCancellableRequest>)getEndpointConfigurationWithCompletionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAPIClientDictionaryCompletionBlock resultCompletion = ^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         if (completion){
             completion(dictionary,error);
         }
@@ -190,7 +190,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
 
 - (id<MCHAPIClientCancellableRequest>)_getEndpointConfigurationWithCompletionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     NSMutableURLRequest *request = [self GETRequestWithURL:[NSURL URLWithString:kMCHClientConfigURL]
                                                contentType:kMCHContentTypeApplicationJSON
@@ -199,7 +199,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
     NSURLSessionDataTask *task = [self dataTaskWithRequest:request
                                          completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         [MCHNetworkClient processDictionaryCompletion:completion
                                              withData:data
                                              response:response
@@ -212,11 +212,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
 
 - (id<MCHAPIClientCancellableRequest>)getUserInfoWithCompletionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAPIClientDictionaryCompletionBlock resultCompletion = ^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         if (completion){
             completion(dictionary,error);
         }
@@ -259,7 +259,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
         return nil;
     }
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     id<MCHAPIClientCancellableRequest> tokenRequest =
     [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
@@ -267,7 +267,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
      {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             [MCHNetworkClient processDictionaryCompletion:completion
                                                  withData:nil
                                                  response:nil
@@ -280,7 +280,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             [MCHNetworkClient printRequest:request];
             NSURLSessionDataTask *task = [strongSelf dataTaskWithRequest:request
                                                        completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-                [strongSelf removeCancellableRequest:weak_clientRequest];
+                [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
                 
                 MCHAPIClientDictionaryCompletionBlock resultCompletion =
                 ^(NSDictionary * _Nullable resultDictionary, NSError * _Nullable resultError) {
@@ -307,11 +307,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
 - (id<MCHAPIClientCancellableRequest>)getDevicesForUserWithID:(NSString *)userID
                                               completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAPIClientDictionaryCompletionBlock resultCompletion = ^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         if (completion){
             completion(dictionary,error);
         }
@@ -354,14 +354,14 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
         return nil;
     }
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     id<MCHAPIClientCancellableRequest> tokenRequest =
     [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
      ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, MCHAccessToken * _Nullable accessToken, NSError * _Nullable error){
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             [MCHNetworkClient processDictionaryCompletion:completion
                                                  withData:nil
                                                  response:nil
@@ -375,7 +375,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             [MCHNetworkClient printRequest:request];
             NSURLSessionDataTask *task = [strongSelf dataTaskWithRequest:request
                                                        completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-                [strongSelf removeCancellableRequest:weak_clientRequest];
+                [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
                 [MCHNetworkClient processDictionaryCompletion:completion
                                                      withData:data
                                                      response:response
@@ -392,11 +392,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
 - (id<MCHAPIClientCancellableRequest>)getDeviceInfoWithID:(NSString *)deviceID
                                           completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAPIClientDictionaryCompletionBlock resultCompletion = ^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         if (completion){
             completion(dictionary,error);
         }
@@ -440,7 +440,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
     }
     NSParameterAssert(deviceID);
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     id<MCHAPIClientCancellableRequest> tokenRequest =
     [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
@@ -448,7 +448,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
      {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             [MCHNetworkClient processDictionaryCompletion:completion
                                                  withData:nil
                                                  response:nil
@@ -462,7 +462,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             [MCHNetworkClient printRequest:request];
             NSURLSessionDataTask *task = [strongSelf dataTaskWithRequest:request
                                                        completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-                [strongSelf removeCancellableRequest:weak_clientRequest];
+                [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
                 [MCHNetworkClient processDictionaryCompletion:completion
                                                      withData:data
                                                      response:response
@@ -480,11 +480,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                                       parentID:(NSString *)parentID
                                                completionBlock:(MCHAPIClientArrayCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAPIClientArrayCompletionBlock resultCompletion = ^(NSArray<NSDictionary *> * _Nullable array, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         if (completion){
             completion(array,error);
         }
@@ -553,14 +553,14 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
         return nil;
     }
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     id<MCHAPIClientCancellableRequest> tokenRequest =
     [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
      ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, MCHAccessToken * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             if(completion){
                 completion(nil,error);
             }
@@ -605,7 +605,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                         weak_clientRequest.internalRequest = (id<MCHAPIClientCancellableRequest>)nextPageRequest;
                     }
                     else{
-                        [strongSelf removeCancellableRequest:weak_clientRequest];
+                        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
                         if(resultFiles.count==0 || error){
                             if(completion){
                                 completion(nil,error);
@@ -631,11 +631,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                                            fileID:(NSString *)fileID
                                                   completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAPIClientDictionaryCompletionBlock resultCompletion = ^(NSDictionary * _Nullable dictionary, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         if (completion){
             completion(dictionary,error);
         }
@@ -683,14 +683,14 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                                 error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     id<MCHAPIClientCancellableRequest> tokenRequest =
     [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
      ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, MCHAccessToken * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             [MCHNetworkClient processDictionaryCompletion:completion
                                                  withData:nil
                                                  response:nil
@@ -704,7 +704,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             [MCHNetworkClient printRequest:request];
             NSURLSessionDataTask *task = [strongSelf dataTaskWithRequest:request
                                                        completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-                [strongSelf removeCancellableRequest:weak_clientRequest];
+                [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
                 [MCHNetworkClient processDictionaryCompletion:completion
                                                      withData:data
                                                      response:response
@@ -722,11 +722,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                                           fileID:(NSString *)fileID
                                                  completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAPIClientErrorCompletionBlock resultCompletion = ^(NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         if (completion){
             completion(error);
         }
@@ -773,14 +773,14 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                            error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     id<MCHAPIClientCancellableRequest> tokenRequest =
     [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
      ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, MCHAccessToken * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             [MCHNetworkClient processErrorCompletion:completion
                                             response:nil
                                                error:error];
@@ -793,7 +793,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             [MCHNetworkClient printRequest:request];
             NSURLSessionDataTask *task = [strongSelf dataTaskWithRequest:request
                                                        completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-                [strongSelf removeCancellableRequest:weak_clientRequest];
+                [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
                 [MCHNetworkClient processErrorCompletion:completion
                                                 response:response
                                                    error:error];
@@ -835,11 +835,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                                     itemMIMEType:(NSString *)itemMIMEType
                                                  completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAPIClientErrorCompletionBlock resultCompletion = ^(NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         if (completion){
             completion(error);
         }
@@ -893,14 +893,14 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                            error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     id<MCHAPIClientCancellableRequest> tokenRequest =
     [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
      ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, MCHAccessToken * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             [MCHNetworkClient processErrorCompletion:completion
                                             response:nil
                                                error:error];
@@ -928,7 +928,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             [MCHNetworkClient printRequest:request];
             NSURLSessionDataTask *task = [strongSelf dataTaskWithRequest:request
                                                        completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-                [strongSelf removeCancellableRequest:weak_clientRequest];
+                [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
                 [MCHNetworkClient processErrorCompletion:completion
                                                 response:response
                                                    error:error];
@@ -968,11 +968,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                                      parameters:(NSDictionary<NSString *,NSString *> *)parameters
                                                 completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAPIClientErrorCompletionBlock resultCompletion = ^(NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         if (completion){
             completion(error);
         }
@@ -1023,14 +1023,14 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                            error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     id<MCHAPIClientCancellableRequest> tokenRequest =
     [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
      ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, MCHAccessToken * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             [MCHNetworkClient processErrorCompletion:completion
                                             response:nil
                                                error:error];
@@ -1046,7 +1046,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
             [MCHNetworkClient printRequest:request];
             NSURLSessionDataTask *task = [strongSelf dataTaskWithRequest:request
                                                        completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-                [strongSelf removeCancellableRequest:weak_clientRequest];
+                [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
                 [MCHNetworkClient processErrorCompletion:completion
                                                 response:response
                                                    error:error];
@@ -1066,11 +1066,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                              didReceiveResponseBlock:(MCHAPIClientDidReceiveResponseBlock _Nullable)didReceiveResponse
                                                      completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAPIClientErrorCompletionBlock resultCompletion = ^(NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         if (completion){
             completion(error);
         }
@@ -1126,7 +1126,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                            error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     clientRequest.didReceiveDataBlock = didReceiveData;
     clientRequest.didReceiveResponseBlock = didReceiveResponse;
     clientRequest.errorCompletionBlock = completion;
@@ -1136,7 +1136,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
      ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, MCHAccessToken * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             [MCHNetworkClient processErrorCompletion:completion response:nil error:error];
         }
         else{
@@ -1163,11 +1163,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                                             fileID:(NSString *)fileID
                                                    completionBlock:(MCHAPIClientURLCompletionBlock _Nullable)completion{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAPIClientURLCompletionBlock resultCompletion = ^(NSURL *_Nullable location, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         if (completion){
             completion(location,error);
         }
@@ -1214,14 +1214,14 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                          error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     id<MCHAPIClientCancellableRequest> tokenRequest =
     [self getAccessTokenAndEndpointConfigurationWithCompletionBlock:
      ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, MCHAccessToken * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             [MCHNetworkClient processURLCompletion:completion
                                                url:nil
                                              error:error];
@@ -1244,11 +1244,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                                             progressBlock:(MCHAPIClientProgressBlock _Nullable)progressBlock
                                                           completionBlock:(MCHAPIClientURLCompletionBlock _Nullable)downloadCompletionBlock{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAPIClientURLCompletionBlock resultCompletion = ^(NSURL *_Nullable location, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         if (downloadCompletionBlock){
             downloadCompletionBlock(location,error);
         }
@@ -1297,7 +1297,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                          error:[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]];
         return nil;
     }
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     clientRequest.progressBlock = progressBlock;
     clientRequest.downloadCompletionBlock = downloadCompletionBlock;
     MCHMakeWeakReference(clientRequest);
@@ -1314,7 +1314,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
          ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, MCHAccessToken * _Nullable accessToken, NSError * _Nullable error) {
             MCHMakeStrongSelfAndReturnIfNil;
             if(error){
-                [strongSelf removeCancellableRequest:weak_clientRequest];
+                [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
                 [MCHNetworkClient processURLCompletion:downloadCompletionBlock
                                                    url:nil
                                                  error:error];
@@ -1343,11 +1343,11 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
                                                                     progressBlock:(MCHAPIClientProgressBlock _Nullable)progressBlock
                                                                   completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completionBlock{
     MCHMakeWeakSelf;
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
     MCHAPIClientErrorCompletionBlock resultCompletion = ^(NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
-        [strongSelf removeCancellableRequest:weak_clientRequest];
+        [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
         if (completionBlock){
             completionBlock(error);
         }
@@ -1415,7 +1415,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
         return nil;
     }
     
-    MCHAPIClientRequest *clientRequest = [self createAndAddCancellableRequest];
+    MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     clientRequest.progressBlock = progressBlock;
     clientRequest.errorCompletionBlock = completionBlock;
     clientRequest.totalContentSize = @(contentSize);
@@ -1426,7 +1426,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
      ^(id<MCHEndpointConfiguration> _Nullable endpointConfiguration, MCHAccessToken * _Nullable accessToken, NSError * _Nullable error) {
         MCHMakeStrongSelfAndReturnIfNil;
         if(error){
-            [strongSelf removeCancellableRequest:weak_clientRequest];
+            [strongSelf removeCancellableRequestFromCache:weak_clientRequest];
             [MCHNetworkClient processErrorCompletion:completionBlock
                                             response:nil
                                                error:error];
@@ -1505,24 +1505,24 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 1.5;
 
 #pragma mark - Requests Cache
 
-- (MCHAPIClientRequest * _Nullable)cancellableRequestWithURLTaskIdentifier:(NSUInteger)URLTaskIdentifier{
-    return [self.networkClient.requestsCache cancellableRequestWithURLTaskIdentifier:URLTaskIdentifier];
+- (MCHAPIClientRequest * _Nullable)cachedCancellableRequestWithURLTaskIdentifier:(NSUInteger)URLTaskIdentifier{
+    return [self.networkClient.requestsCache cachedCancellableRequestWithURLTaskIdentifier:URLTaskIdentifier];
 }
 
-- (NSArray<MCHAPIClientRequest *> * _Nullable)allCancellableRequestsWithURLTasks{
-    return [self.networkClient.requestsCache allCancellableRequestsWithURLTasks];
+- (NSArray<MCHAPIClientRequest *> * _Nullable)allCachedCancellableRequestsWithURLTasks{
+    return [self.networkClient.requestsCache allCachedCancellableRequestsWithURLTasks];
 }
 
-- (MCHAPIClientRequest *)createAndAddCancellableRequest{
-    return [self.networkClient.requestsCache createAndAddCancellableRequest];
+- (MCHAPIClientRequest *)createCachedCancellableRequest{
+    return [self.networkClient.requestsCache createCachedCancellableRequest];
 }
 
-- (void)addCancellableRequest:(id<MCHAPIClientCancellableRequest> _Nonnull)request{
-    return [self.networkClient.requestsCache addCancellableRequest:request];
+- (void)addCancellableRequestToCache:(id<MCHAPIClientCancellableRequest> _Nonnull)request{
+    return [self.networkClient.requestsCache addCancellableRequestToCache:request];
 }
 
-- (void)removeCancellableRequest:(id<MCHAPIClientCancellableRequest> _Nonnull)request{
-    return [self.networkClient.requestsCache removeCancellableRequest:request];
+- (void)removeCancellableRequestFromCache:(id<MCHAPIClientCancellableRequest> _Nonnull)request{
+    return [self.networkClient.requestsCache removeCancellableRequestFromCache:request];
 }
 
 #pragma mark - Internal

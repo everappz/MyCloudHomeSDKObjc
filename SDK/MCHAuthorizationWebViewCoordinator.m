@@ -32,7 +32,7 @@ typedef BOOL(^MCHAuthorizationWebViewDecidePolicyBlock)(WKWebView *webView,WKNav
         MCHMakeWeakSelf;
         [self setWebViewDecidePolicyBlock:^BOOL(WKWebView * _Nonnull webView, WKNavigationAction * _Nonnull navigationAction) {
             NSURL *navigationActionURL = navigationAction.request.URL;
-            NSLog(@"navigationActionURL: %@",navigationActionURL);
+            MCHLog(@"navigationActionURL: %@",navigationActionURL);
             if([navigationActionURL.scheme.lowercaseString isEqualToString:redirectURI.scheme.lowercaseString]){
                 NSString *absoluteString = navigationActionURL.absoluteString;
                 absoluteString = [absoluteString stringByReplacingOccurrencesOfString:@"/?" withString:@"?"];

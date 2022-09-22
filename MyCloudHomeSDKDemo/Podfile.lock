@@ -1,10 +1,10 @@
 PODS:
   - ISO8601DateFormatter (0.8)
-  - MyCloudHomeSDKObjc (1.0.12):
+  - MyCloudHomeSDKObjc (1.0.14):
     - ISO8601DateFormatter
 
 DEPENDENCIES:
-  - MyCloudHomeSDKObjc (from `https://github.com/leshkoapps/MyCloudHomeSDKObjc`, commit `38b1b17d83a5210e6612e34aac6888625d66c997`)
+  - MyCloudHomeSDKObjc (from `https://github.com/leshkoapps/MyCloudHomeSDKObjc`, commit `ef92a0801e6b0495c9eb2cb13e908ff34963e80f`)
 
 SPEC REPOS:
   trunk:
@@ -12,18 +12,18 @@ SPEC REPOS:
 
 EXTERNAL SOURCES:
   MyCloudHomeSDKObjc:
-    :commit: 38b1b17d83a5210e6612e34aac6888625d66c997
+    :commit: ef92a0801e6b0495c9eb2cb13e908ff34963e80f
     :git: https://github.com/leshkoapps/MyCloudHomeSDKObjc
 
 CHECKOUT OPTIONS:
   MyCloudHomeSDKObjc:
-    :commit: 38b1b17d83a5210e6612e34aac6888625d66c997
+    :commit: ef92a0801e6b0495c9eb2cb13e908ff34963e80f
     :git: https://github.com/leshkoapps/MyCloudHomeSDKObjc
 
 SPEC CHECKSUMS:
   ISO8601DateFormatter: 4551b6ce4f83185425f583b0b3feb3c7b59b942c
-  MyCloudHomeSDKObjc: d7500a2394cab21942e10b68175022bd27416e54
+  MyCloudHomeSDKObjc: 79522a41b10836813691baeec8d97bd6ad6e54c8
 
-PODFILE CHECKSUM: d8458355aa50bc4f7a92e0195ae099472ae39ee9
+PODFILE CHECKSUM: 7e1c387284015e468f09cc0a9f5f936d83a60177
 
-COCOAPODS: 1.10.0
+COCOAPODS: 1.11.3
