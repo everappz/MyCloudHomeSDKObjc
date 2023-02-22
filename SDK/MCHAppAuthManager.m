@@ -18,11 +18,11 @@
 
 @interface MCHAppAuthManager()
 
-@property(nonatomic, copy) NSString *clientID;
-@property(nonatomic, copy) NSString *clientSecret;
-@property(nonatomic, copy) NSString *redirectURI;
-@property(nonatomic, copy) NSArray<NSString *> *scopes;
-@property(nonatomic, strong) MCHAppAuthFlow *currentAuthorizationFlow;
+@property (nonatomic, copy) NSString *clientID;
+@property (nonatomic, copy) NSString *clientSecret;
+@property (nonatomic, copy) NSString *redirectURI;
+@property (nonatomic, copy) NSArray<NSString *> *scopes;
+@property (nonatomic, strong) MCHAppAuthFlow *currentAuthorizationFlow;
 
 @end
 

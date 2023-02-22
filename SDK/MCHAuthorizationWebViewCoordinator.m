@@ -74,9 +74,7 @@ typedef BOOL(^MCHAuthorizationWebViewDecidePolicyBlock)(WKWebView *webView,WKNav
     return NO;
 }
 
-- (void)dismissExternalUserAgentAnimated:(BOOL)animated
-                              completion:(nullable dispatch_block_t)completion
-{
+- (void)dismissExternalUserAgentAnimated:(BOOL)animated completion:(nullable dispatch_block_t)completion {
     NSParameterAssert([NSThread isMainThread]);
     if (!self.authorizationFlowInProgress) {
         return;
@@ -180,21 +178,17 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
     }
 }
 
-- (void)webView:(WKWebView *)webView
-didStartProvisionalNavigation:(null_unspecified WKNavigation *)navigation{
+- (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(null_unspecified WKNavigation *)navigation {
     if(self.webViewDidStartLoadingBlock){
         self.webViewDidStartLoadingBlock(webView);
     }
 }
 
-- (void)webView:(WKWebView *)webView
-didFinishNavigation:(null_unspecified WKNavigation *)navigation{
+- (void)webView:(WKWebView *)webView didFinishNavigation:(null_unspecified WKNavigation *)navigation {
     [self WKWebViewDidFinish:webView error:nil];
 }
 
-- (void)webView:(WKWebView *)webView
-didFailNavigation:(null_unspecified WKNavigation *)navigation
-      withError:(NSError *)error{
+- (void)webView:(WKWebView *)webView didFailNavigation:(null_unspecified WKNavigation *)navigation withError:(NSError *)error {
     [self WKWebViewDidFinish:webView error:error];
 }
 

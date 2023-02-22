@@ -40,7 +40,7 @@ NSURLSessionDownloadDelegate
     self = [super init];
     if (self){
         NSURLSessionConfiguration *resultConfiguration = URLSessionConfiguration;
-        if(resultConfiguration == nil){
+        if (resultConfiguration == nil) {
             resultConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
             resultConfiguration.requestCachePolicy = NSURLRequestUseProtocolCachePolicy;
             resultConfiguration.allowsCellularAccess = YES;
@@ -126,14 +126,14 @@ NSURLSessionDownloadDelegate
 }
 
 - (NSURLSessionDataTask *)dataTaskWithRequest:(NSURLRequest *)request
-                            completionHandler:(void (^)(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error))completionHandler{
+                            completionHandler:(void (^)(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error))completionHandler
+{
     NSParameterAssert(self.session);
     NSParameterAssert(request);
     if(self.session && request){
-        return [self.session dataTaskWithRequest:request
-                               completionHandler:completionHandler];
+        return [self.session dataTaskWithRequest:request completionHandler:completionHandler];
     }
-    if(completionHandler){
+    if (completionHandler) {
         completionHandler(nil,nil,[NSError MCHErrorWithCode:MCHErrorCodeBadInputParameters]);
     }
     return nil;
@@ -169,104 +169,147 @@ NSURLSessionDownloadDelegate
 #pragma mark - NSURLSession Delegate
 
 - (void)URLSession:(NSURLSession *)session
-didBecomeInvalidWithError:(nullable NSError *)error{
-    NSArray *tasks = [self allCachedCancellableRequestsWithURLTasks];
-    [tasks enumerateObjectsUsingBlock:^(MCHAPIClientRequest * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        if(obj.errorCompletionBlock){
-            obj.errorCompletionBlock(error);
+didBecomeInvalidWithError:(nullable NSError *)error
+{
+    NSArray *requests = [self allCachedCancellableRequestsWithURLTasks];
+    for (MCHAPIClientRequest *request in requests) {
+        if (request.errorCompletionBlock) {
+            request.errorCompletionBlock(error);
         }
-        [self removeCancellableRequestFromCache:obj];
-    }];
+        [self removeCancellableRequestFromCache:request];
+    }
 }
 
 - (void)URLSession:(NSURLSession *)session
               task:(NSURLSessionTask *)task
    didSendBodyData:(int64_t)bytesSent
     totalBytesSent:(int64_t)totalBytesSent
-totalBytesExpectedToSend:(int64_t)totalBytesExpectedToSend{
-    MCHAPIClientRequest *request = [self cachedCancellableRequestWithURLTaskIdentifier:task.taskIdentifier];
-    int64_t totalSize = totalBytesExpectedToSend>0?totalBytesExpectedToSend:[request.totalContentSize longLongValue];
-    if(request.progressBlock && totalSize>0){
-        request.progressBlock((float)totalBytesSent/(float)totalSize);
+totalBytesExpectedToSend:(int64_t)totalBytesExpectedToSend
+{
+    NSArray<MCHAPIClientRequest *> *requests = [self cachedCancellableRequestsWithURLTaskIdentifier:task.taskIdentifier];
+    if (requests.count == 0) {
+        [task cancel];
+        return;
+    }
+    for (MCHAPIClientRequest *request in requests) {
+        int64_t totalSize = totalBytesExpectedToSend>0?totalBytesExpectedToSend:[request.totalContentSize longLongValue];
+        if(request.progressBlock && totalSize>0){
+            request.progressBlock((float)totalBytesSent/(float)totalSize);
+        }
     }
 }
 
 - (void)URLSession:(NSURLSession *)session
               task:(NSURLSessionTask *)task
-didCompleteWithError:(nullable NSError *)error{
-    MCHAPIClientRequest *request = [self cachedCancellableRequestWithURLTaskIdentifier:task.taskIdentifier];
-    if(request.errorCompletionBlock){
-        request.errorCompletionBlock(error);
+didCompleteWithError:(nullable NSError *)error
+{
+    NSArray<MCHAPIClientRequest *> *requests = [self cachedCancellableRequestsWithURLTaskIdentifier:task.taskIdentifier];
+    for (MCHAPIClientRequest *request in requests) {
+        if(request.errorCompletionBlock){
+            request.errorCompletionBlock(error);
+        }
+        if(request.downloadCompletionBlock){
+            request.downloadCompletionBlock(nil,error);
+        }
+        [self removeCancellableRequestFromCache:request];
     }
-    if(request.downloadCompletionBlock){
-        request.downloadCompletionBlock(nil,error);
-    }
-    [self removeCancellableRequestFromCache:request];
 }
 
 - (void)URLSession:(NSURLSession *)session
           dataTask:(NSURLSessionDataTask *)dataTask
 didReceiveResponse:(NSURLResponse *)response
- completionHandler:(void (^)(NSURLSessionResponseDisposition disposition))completionHandler{
-    MCHAPIClientRequest *request = [self cachedCancellableRequestWithURLTaskIdentifier:dataTask.taskIdentifier];
-    if(request.didReceiveResponseBlock){
-        request.didReceiveResponseBlock(response);
+ completionHandler:(void (^)(NSURLSessionResponseDisposition disposition))completionHandler
+{
+    NSArray<MCHAPIClientRequest *> *requests = [self cachedCancellableRequestsWithURLTaskIdentifier:dataTask.taskIdentifier];
+    if (requests.count == 0) {
+        [dataTask cancel];
+        if (completionHandler) {
+            completionHandler(NSURLSessionResponseCancel);
+        }
+        return;
     }
-    if(completionHandler){
+    for (MCHAPIClientRequest *request in requests) {
+        if(request.didReceiveResponseBlock){
+            request.didReceiveResponseBlock(response);
+        }
+    }
+    if (completionHandler) {
         completionHandler(NSURLSessionResponseAllow);
     }
 }
 
 - (void)URLSession:(NSURLSession *)session
           dataTask:(NSURLSessionDataTask *)dataTask
-    didReceiveData:(NSData *)data{
-    MCHAPIClientRequest *request = [self cachedCancellableRequestWithURLTaskIdentifier:dataTask.taskIdentifier];
-    if(request.didReceiveDataBlock){
-        request.didReceiveDataBlock(data);
+    didReceiveData:(NSData *)data
+{
+    NSArray<MCHAPIClientRequest *> *requests = [self cachedCancellableRequestsWithURLTaskIdentifier:dataTask.taskIdentifier];
+    if (requests.count == 0) {
+        [dataTask cancel];
+        return;
+    }
+    for (MCHAPIClientRequest *request in requests) {
+        if(request.didReceiveDataBlock){
+            request.didReceiveDataBlock(data);
+        }
     }
 }
 
 - (void)URLSession:(NSURLSession *)session
       downloadTask:(NSURLSessionDownloadTask *)downloadTask
-didFinishDownloadingToURL:(NSURL *)location{
-    MCHAPIClientRequest *request = [self cachedCancellableRequestWithURLTaskIdentifier:downloadTask.taskIdentifier];
-    if(request.downloadCompletionBlock){
-        request.downloadCompletionBlock(location,nil);
+didFinishDownloadingToURL:(NSURL *)location
+{
+    NSArray<MCHAPIClientRequest *> *requests = [self cachedCancellableRequestsWithURLTaskIdentifier:downloadTask.taskIdentifier];
+    for (MCHAPIClientRequest *request in requests) {
+        if(request.downloadCompletionBlock){
+            request.downloadCompletionBlock(location,nil);
+        }
+        [self removeCancellableRequestFromCache:request];
     }
-    [self removeCancellableRequestFromCache:request];
 }
 
 - (void)URLSession:(NSURLSession *)session
       downloadTask:(NSURLSessionDownloadTask *)downloadTask
       didWriteData:(int64_t)bytesWritten
  totalBytesWritten:(int64_t)totalBytesWritten
-totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite{
-    MCHAPIClientRequest *request = [self cachedCancellableRequestWithURLTaskIdentifier:downloadTask.taskIdentifier];
-    int64_t totalSize = totalBytesExpectedToWrite>0?totalBytesExpectedToWrite:[request.totalContentSize longLongValue];
-    if(request.progressBlock && totalSize>0){
-        request.progressBlock((float)totalBytesWritten/(float)totalSize);
+totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
+{
+    NSArray<MCHAPIClientRequest *> *requests = [self cachedCancellableRequestsWithURLTaskIdentifier:downloadTask.taskIdentifier];
+    if (requests.count == 0) {
+        [downloadTask cancel];
+        return;
+    }
+    for (MCHAPIClientRequest *request in requests) {
+        int64_t totalSize = totalBytesExpectedToWrite>0?totalBytesExpectedToWrite:[request.totalContentSize longLongValue];
+        if(request.progressBlock && totalSize>0){
+            request.progressBlock((float)totalBytesWritten/(float)totalSize);
+        }
     }
 }
 
 #pragma mark - Requests Cache
 
-- (MCHAPIClientRequest * _Nullable)cachedCancellableRequestWithURLTaskIdentifier:(NSUInteger)URLTaskIdentifier{
-    return [self.requestsCache cachedCancellableRequestWithURLTaskIdentifier:URLTaskIdentifier];
+- (NSArray<MCHAPIClientRequest *> * _Nullable)cachedCancellableRequestsWithURLTaskIdentifier:(NSUInteger)URLTaskIdentifier{
+    NSParameterAssert(self.requestsCache);
+    return [self.requestsCache cachedCancellableRequestsWithURLTaskIdentifier:URLTaskIdentifier];
 }
 
 - (NSArray<MCHAPIClientRequest *> * _Nullable)allCachedCancellableRequestsWithURLTasks{
+    NSParameterAssert(self.requestsCache);
     return [self.requestsCache allCachedCancellableRequestsWithURLTasks];
 }
 
 - (MCHAPIClientRequest *)createCachedCancellableRequest{
+    NSParameterAssert(self.requestsCache);
     return [self.requestsCache createCachedCancellableRequest];
 }
 
-- (void)addCancellableRequestToCache:(id<MCHAPIClientCancellableRequest> _Nonnull)request{
-    return [self.requestsCache addCancellableRequestToCache:request];
+- (void)removeCancellableRequestFromCache:(id<MCHAPIClientCancellableRequest> _Nonnull)request{
+    NSParameterAssert(self.requestsCache);
+    return [self.requestsCache removeCancellableRequestFromCache:request];
 }
 
-- (void)removeCancellableRequestFromCache:(id<MCHAPIClientCancellableRequest> _Nonnull)request{
+- (void)removeAllCancellableRequestsFromCacheWithURLTaskIdentifier:(id<MCHAPIClientCancellableRequest> _Nonnull)request{
+    NSParameterAssert(self.requestsCache);
     return [self.requestsCache removeCancellableRequestFromCache:request];
 }
 

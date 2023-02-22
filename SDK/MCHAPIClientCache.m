@@ -15,8 +15,8 @@
 @interface MCHAPIClientCache()
 
 @property (nonatomic, strong) NSMutableDictionary<NSString *,MCHAppAuthProvider *> *authProviders;
-
 @property (nonatomic, strong) NSMutableDictionary<NSString *,MCHAPIClient *> *apiClients;
+@property (nonatomic, strong) NSRecursiveLock *stateLock;
 
 @end
 
@@ -34,7 +34,8 @@
 
 - (instancetype)init{
     self = [super init];
-    if(self){
+    if (self) {
+        self.stateLock = [NSRecursiveLock new];
         self.authProviders = [[NSMutableDictionary<NSString *,MCHAppAuthProvider *> alloc] init];
         self.apiClients = [[NSMutableDictionary<NSString *,MCHAPIClient *> alloc] init];
         [[NSNotificationCenter defaultCenter] addObserver:self
@@ -49,32 +50,33 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-- (MCHAPIClient *_Nullable)clientForIdentifier:(NSString * _Nonnull)identifier{
+- (MCHAPIClient *_Nullable)clientForIdentifier:(NSString * _Nonnull)identifier {
     NSParameterAssert(identifier);
     if (identifier == nil){
         return nil;
     }
+    
     MCHAPIClient *client = nil;
-    @synchronized (self.apiClients) {
-        client = [self.apiClients objectForKey:identifier];
-    }
+    [self.stateLock lock];
+    client = [self.apiClients objectForKey:identifier];
+    [self.stateLock unlock];
     return client;
 }
 
-- (MCHAppAuthProvider *_Nullable)authProviderForIdentifier:(NSString * _Nonnull)identifier{
+- (MCHAppAuthProvider *_Nullable)authProviderForIdentifier:(NSString * _Nonnull)identifier {
     NSParameterAssert(identifier);
     if (identifier == nil){
         return nil;
     }
+    
     MCHAppAuthProvider *authProvider = nil;
-    @synchronized (self.authProviders) {
-        authProvider = [self.authProviders objectForKey:identifier];
-    }
+    [self.stateLock lock];
+    authProvider = [self.authProviders objectForKey:identifier];
+    [self.stateLock unlock];
     return authProvider;
 }
 
-- (BOOL)setAuthProvider:(MCHAppAuthProvider * _Nonnull)authProvider
-          forIdentifier:(NSString * _Nonnull)identifier{
+- (BOOL)setAuthProvider:(MCHAppAuthProvider * _Nonnull)authProvider forIdentifier:(NSString * _Nonnull)identifier {
     NSParameterAssert(authProvider);
     NSParameterAssert(identifier);
     if (identifier == nil){
@@ -83,14 +85,14 @@
     if (authProvider == nil){
         return NO;
     }
-    @synchronized (self.authProviders) {
-        [self.authProviders setObject:authProvider forKey:identifier];
-    }
+    
+    [self.stateLock lock];
+    [self.authProviders setObject:authProvider forKey:identifier];
+    [self.stateLock unlock];
     return YES;
 }
 
-- (BOOL)setClient:(MCHAPIClient * _Nonnull)client
-    forIdentifier:(NSString * _Nonnull)identifier{
+- (BOOL)setClient:(MCHAPIClient * _Nonnull)client forIdentifier:(NSString * _Nonnull)identifier {
     NSParameterAssert(client);
     NSParameterAssert(identifier);
     if (identifier == nil){
@@ -99,9 +101,10 @@
     if (client == nil){
         return NO;
     }
-    @synchronized (self.apiClients) {
-        [self.apiClients setObject:client forKey:identifier];
-    }
+    
+    [self.stateLock lock];
+    [self.apiClients setObject:client forKey:identifier];
+    [self.stateLock unlock];
     return YES;
 }
 
@@ -109,24 +112,22 @@
                                            authState:(MCHAuthState *_Nonnull)authState
                                 sessionConfiguration:(NSURLSessionConfiguration * _Nullable)URLSessionConfiguration
 {
-    
     NSParameterAssert(authState);
     NSParameterAssert(identifier);
     
-    if(identifier == nil || authState == nil){
+    if (identifier == nil || authState == nil) {
         return nil;
     }
     
     MCHAppAuthProvider *authProvider = [self authProviderForIdentifier:identifier];
     if (authProvider == nil) {
-        authProvider = [[MCHAppAuthProvider alloc] initWithIdentifier:identifier
-                                                                state:authState];
+        authProvider = [[MCHAppAuthProvider alloc] initWithIdentifier:identifier state:authState];
         if (authProvider) {
             [self setAuthProvider:authProvider forIdentifier:identifier];
         }
     }
     NSParameterAssert(authProvider);
-    if(authProvider == nil){
+    if (authProvider == nil) {
         return nil;
     }
     
@@ -134,7 +135,7 @@
                                                            endpointConfiguration:nil
                                                                     authProvider:authProvider];
     NSParameterAssert(client);
-    if(client){
+    if (client) {
         [self setClient:client forIdentifier:identifier];
     }
     return client;
@@ -147,6 +148,7 @@
     if(authState == nil || identifier == nil){
         return;
     }
+    
     MCHLog(@"authStateChanged: %@ forIdentifier: %@",authState.accessToken,identifier);
     MCHAppAuthProvider *authProvider = [[MCHAppAuthProvider alloc] initWithIdentifier:identifier
                                                                                 state:authState];
@@ -154,6 +156,7 @@
     if(authProvider){
         [self setAuthProvider:authProvider forIdentifier:identifier];
     }
+    
     MCHAPIClient *apiClient = [self clientForIdentifier:identifier];
     NSParameterAssert(apiClient);
     [apiClient updateAuthProvider:authProvider];

@@ -20,15 +20,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface MCHAPIClientRequest : NSObject <MCHAPIClientCancellableRequest>
 
-- (instancetype)initWithInternalRequest:(id<MCHAPIClientCancellableRequest> _Nullable)internalRequest;
 
-@property (nonatomic, strong, nullable) id<MCHAPIClientCancellableRequest> internalRequest;
+@property (nonatomic, strong, nullable) id<MCHAPIClientCancellableRequest> childRequest;
 @property (nonatomic, copy, nullable) MCHAPIClientDidReceiveDataBlock didReceiveDataBlock;
 @property (nonatomic, copy, nullable) MCHAPIClientDidReceiveResponseBlock didReceiveResponseBlock;
 @property (nonatomic, copy, nullable) MCHAPIClientErrorCompletionBlock errorCompletionBlock;
 @property (nonatomic, copy, nullable) MCHAPIClientProgressBlock progressBlock;
 @property (nonatomic, copy, nullable) MCHAPIClientURLCompletionBlock downloadCompletionBlock;
-@property (nonatomic , copy , nullable) MCHAPIClientVoidCompletionBlock cancelBlock;
+@property (nonatomic, copy, nullable) MCHAPIClientVoidCompletionBlock cancelBlock;
 @property (nonatomic, strong, nullable) NSNumber *totalContentSize;
 @property (nonatomic, assign) NSUInteger URLTaskIdentifier;
 

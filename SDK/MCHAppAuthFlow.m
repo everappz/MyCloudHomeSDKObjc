@@ -18,22 +18,21 @@
 
 @interface MCHAppAuthFlow()
 
-@property(atomic, assign) BOOL started;
-@property(atomic, assign) BOOL cancelled;
-@property(atomic, assign) BOOL completed;
+@property (atomic, assign) BOOL started;
+@property (atomic, assign) BOOL cancelled;
+@property (atomic, assign) BOOL completed;
 
-@property(nonatomic, strong) MCHAPIClient *apiClient;
-@property(nonatomic, strong) id<MCHEndpointConfiguration> endPointConfiguration;
-@property(nonatomic, strong) MCHAuthorizationWebViewCoordinator *webViewCoordinator;
-@property(nonatomic, strong) MCHNetworkClient *networkClient;
-@property(nonatomic, weak) NSURLSessionDataTask *tokenExchangeDataTask;
+@property (nonatomic, strong) MCHAPIClient *apiClient;
+@property (nonatomic, strong) id<MCHEndpointConfiguration> endPointConfiguration;
+@property (nonatomic, strong) MCHAuthorizationWebViewCoordinator *webViewCoordinator;
+@property (nonatomic, strong) MCHNetworkClient *networkClient;
+@property (nonatomic, weak) NSURLSessionDataTask *tokenExchangeDataTask;
 
 @end
 
 
 
 @implementation MCHAppAuthFlow
-
 
 - (instancetype)init {
     self = [super init];

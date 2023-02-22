@@ -83,7 +83,9 @@ typedef void(^MCHAPIClientEndpointAndAccessTokenCompletionBlock)(id<MCHEndpointC
 
 typedef void(^MCHAuthorizationWebViewCoordinatorLoadingBlock)(WKWebView *webView);
 typedef void(^MCHAuthorizationWebViewCoordinatorErrorBlock)(WKWebView *webView, NSError *webViewError);
-typedef void(^MCHAuthorizationWebViewCoordinatorCompletionBlock)(WKWebView *webView, NSURL * _Nullable webViewRedirectURL, NSError * _Nullable error);
+typedef void(^MCHAuthorizationWebViewCoordinatorCompletionBlock)(WKWebView *webView,
+                                                                 NSURL * _Nullable webViewRedirectURL,
+                                                                 NSError * _Nullable error);
 
 typedef void (^MCHAppAuthManagerAuthorizationBlock)(MCHAuthState *_Nullable authState,
                                                     id<MCHEndpointConfiguration>_Nullable endpointConfiguration,
@@ -93,8 +95,7 @@ typedef void (^MCHAccessTokenUpdateBlock)(NSString *_Nullable accessToken,
                                           NSString *_Nullable idToken,
                                           NSError *_Nullable error);
 
-typedef void (^MCHAccessTokenGetBlock)(MCHAccessToken *_Nullable accessToken,
-                                       NSError *_Nullable error);
+typedef void (^MCHAccessTokenGetBlock)(MCHAccessToken *_Nullable accessToken, NSError *_Nullable error);
 
 
 NS_ASSUME_NONNULL_END

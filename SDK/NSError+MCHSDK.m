@@ -12,14 +12,15 @@ NSString * const MCHErrorDomain = @"MCHErrorDomain";
 
 @implementation NSError(MCHSDK)
 
-+ (instancetype)MCHErrorWithCode:(MCHErrorCode)errorCode{
++ (instancetype)MCHErrorWithCode:(MCHErrorCode)errorCode {
     return [NSError errorWithDomain:MCHErrorDomain
                                code:errorCode
                            userInfo:nil];
 }
 
 + (instancetype)MCHErrorWithCode:(MCHErrorCode)errorCode
-                      statusCode:(NSInteger)statusCode{
+                      statusCode:(NSInteger)statusCode
+{
     NSError *underlyingError = [NSError errorWithDomain:NSURLErrorDomain code:statusCode userInfo:nil];
     return [NSError errorWithDomain:MCHErrorDomain code:errorCode
                            userInfo:@{NSUnderlyingErrorKey:underlyingError}];

@@ -9,7 +9,7 @@
 
 @interface MCHAPIClientRequest(){
     BOOL _сancelled;
-    id<MCHAPIClientCancellableRequest> _Nullable _internalRequest;
+    id<MCHAPIClientCancellableRequest> _Nullable _childRequest;
 }
 
 @property (nonatomic, strong) NSRecursiveLock *stateLock;
@@ -20,24 +20,24 @@
 
 @implementation MCHAPIClientRequest
 
-- (instancetype)initWithInternalRequest:(id<MCHAPIClientCancellableRequest> _Nullable)internalRequest{
+- (instancetype)init{
     self = [super init];
     if (self) {
         self.stateLock = [NSRecursiveLock new];
-        _internalRequest = internalRequest;
-        _сancelled = NO;
     }
     return self;
 }
 
 - (void)cancel{
-    [self.stateLock lock];
-    _сancelled = YES;
-    [_internalRequest cancel];
-    [self.stateLock unlock];
+    MCHAPIClientRequest *strongSelf = self;
     
-    if (self.cancelBlock) {
-        self.cancelBlock();
+    [strongSelf.stateLock lock];
+    _сancelled = YES;
+    [_childRequest cancel];
+    [strongSelf.stateLock unlock];
+    
+    if (strongSelf.cancelBlock) {
+        strongSelf.cancelBlock();
     }
 }
 
@@ -49,18 +49,23 @@
     return flag;
 }
 
-- (void)setInternalRequest:(id<MCHAPIClientCancellableRequest> _Nullable)internalRequest {
+- (void)setChildRequest:(id<MCHAPIClientCancellableRequest> _Nullable)childRequest {
     [self.stateLock lock];
-    _internalRequest = internalRequest;
+    if ([childRequest isKindOfClass:[NSURLSessionTask class]]) {
+        NSURLSessionTask *sessionTask = (NSURLSessionTask *)childRequest;
+        _URLTaskIdentifier = [sessionTask taskIdentifier];
+        NSParameterAssert(_URLTaskIdentifier > 0);
+    }
+    _childRequest = childRequest;
     [self.stateLock unlock];
 }
 
-- (id<MCHAPIClientCancellableRequest> _Nullable)internalRequest {
-    id<MCHAPIClientCancellableRequest> internalRequest = nil;
+- (id<MCHAPIClientCancellableRequest> _Nullable)childRequest {
+    id<MCHAPIClientCancellableRequest> childRequest = nil;
     [self.stateLock lock];
-    internalRequest = _internalRequest;
+    childRequest = _childRequest;
     [self.stateLock unlock];
-    return internalRequest;
+    return childRequest;
 }
 
 @end

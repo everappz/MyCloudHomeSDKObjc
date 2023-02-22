@@ -14,13 +14,11 @@ NSString * const MCHUserApiKeyEmail = @"email";
 @implementation MCHUser
 
 - (NSString *_Nullable)identifier{
-    return [self.class stringForKey:MCHUserApiKeyIdentifier
-                       inDictionary:self.dictionary];
+    return [self.class stringForKey:MCHUserApiKeyIdentifier inDictionary:self.dictionary];
 }
 
 - (NSString *_Nullable)email{
-    return [self.class stringForKey:MCHUserApiKeyEmail
-                       inDictionary:self.dictionary];
+    return [self.class stringForKey:MCHUserApiKeyEmail inDictionary:self.dictionary];
 }
 
 @end

@@ -11,9 +11,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface MCHAccessToken : NSObject
 
-@property (nonatomic,copy,readonly)NSString *token;
+@property (nonatomic, copy, readonly) NSString *token;
 
-@property (nonatomic,copy,readonly)NSString *type;
+@property (nonatomic, copy, readonly) NSString *type;
 
 + (instancetype)accessTokenWithToken:(NSString *)token type:(NSString *)type;
 
