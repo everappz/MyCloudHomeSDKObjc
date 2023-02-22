@@ -250,6 +250,7 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 2.0;
                                              response:response
                                                 error:error];
     }];
+    
     NSCParameterAssert(clientRequest);
     clientRequest.childRequest = (id<MCHAPIClientCancellableRequest>)task;
     [task resume];
@@ -399,7 +400,8 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 2.0;
 }
 
 - (id<MCHAPIClientCancellableRequest>)_getDevicesForUserWithID:(NSString *)userID
-                                               completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
+                                               completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion
+{
     NSParameterAssert(userID);
     if (userID == nil) {
         if (completion) {
@@ -449,7 +451,8 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 2.0;
 }
 
 - (id<MCHAPIClientCancellableRequest>)getDeviceInfoWithID:(NSString *)deviceID
-                                          completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion{
+                                          completionBlock:(MCHAPIClientDictionaryCompletionBlock _Nullable)completion
+{
     MCHMakeWeakSelf;
     MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);
@@ -1120,7 +1123,8 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 2.0;
 - (id<MCHAPIClientCancellableRequest>)_patchFileForDeviceWithURL:(NSURL *)proxyURL
                                                           fileID:(NSString *)fileID
                                                       parameters:(NSDictionary<NSString *,NSString *> *)parameters
-                                                 completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
+                                                 completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion
+{
     MCHMakeWeakSelf;
     NSParameterAssert(proxyURL);
     NSParameterAssert(fileID);
@@ -1178,7 +1182,8 @@ NSTimeInterval const kMCHAPIClientRequestRetryTimeout = 2.0;
                                                           parameters:(NSDictionary *)additionalHeaders
                                                  didReceiveDataBlock:(MCHAPIClientDidReceiveDataBlock _Nullable)didReceiveData
                                              didReceiveResponseBlock:(MCHAPIClientDidReceiveResponseBlock _Nullable)didReceiveResponse
-                                                     completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion{
+                                                     completionBlock:(MCHAPIClientErrorCompletionBlock _Nullable)completion
+{
     MCHMakeWeakSelf;
     MCHAPIClientRequest *clientRequest = [self createCachedCancellableRequest];
     MCHMakeWeakReference(clientRequest);

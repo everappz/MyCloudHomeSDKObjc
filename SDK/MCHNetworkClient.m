@@ -187,10 +187,6 @@ didBecomeInvalidWithError:(nullable NSError *)error
 totalBytesExpectedToSend:(int64_t)totalBytesExpectedToSend
 {
     NSArray<MCHAPIClientRequest *> *requests = [self cachedCancellableRequestsWithURLTaskIdentifier:task.taskIdentifier];
-    if (requests.count == 0) {
-        [task cancel];
-        return;
-    }
     for (MCHAPIClientRequest *request in requests) {
         int64_t totalSize = totalBytesExpectedToSend>0?totalBytesExpectedToSend:[request.totalContentSize longLongValue];
         if(request.progressBlock && totalSize>0){
@@ -221,13 +217,6 @@ didReceiveResponse:(NSURLResponse *)response
  completionHandler:(void (^)(NSURLSessionResponseDisposition disposition))completionHandler
 {
     NSArray<MCHAPIClientRequest *> *requests = [self cachedCancellableRequestsWithURLTaskIdentifier:dataTask.taskIdentifier];
-    if (requests.count == 0) {
-        [dataTask cancel];
-        if (completionHandler) {
-            completionHandler(NSURLSessionResponseCancel);
-        }
-        return;
-    }
     for (MCHAPIClientRequest *request in requests) {
         if(request.didReceiveResponseBlock){
             request.didReceiveResponseBlock(response);
@@ -243,10 +232,6 @@ didReceiveResponse:(NSURLResponse *)response
     didReceiveData:(NSData *)data
 {
     NSArray<MCHAPIClientRequest *> *requests = [self cachedCancellableRequestsWithURLTaskIdentifier:dataTask.taskIdentifier];
-    if (requests.count == 0) {
-        [dataTask cancel];
-        return;
-    }
     for (MCHAPIClientRequest *request in requests) {
         if(request.didReceiveDataBlock){
             request.didReceiveDataBlock(data);
@@ -274,10 +259,6 @@ didFinishDownloadingToURL:(NSURL *)location
 totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
 {
     NSArray<MCHAPIClientRequest *> *requests = [self cachedCancellableRequestsWithURLTaskIdentifier:downloadTask.taskIdentifier];
-    if (requests.count == 0) {
-        [downloadTask cancel];
-        return;
-    }
     for (MCHAPIClientRequest *request in requests) {
         int64_t totalSize = totalBytesExpectedToWrite>0?totalBytesExpectedToWrite:[request.totalContentSize longLongValue];
         if(request.progressBlock && totalSize>0){
