@@ -132,37 +132,38 @@
 
 - (void)completeTokenUpdateWithResponse:(NSDictionary *_Nullable)dictionary
                                   error:(NSError *_Nullable)error{
-    
-    NSString *access_token = [MCHObject stringForKey:@"access_token" inDictionary:dictionary];
-    NSNumber *expires_in = [MCHObject numberForKey:@"expires_in" inDictionary:dictionary];
-    NSString *id_token = [MCHObject stringForKey:@"id_token" inDictionary:dictionary];
-    NSString *refresh_token = [MCHObject stringForKey:@"refresh_token" inDictionary:dictionary];
-    NSString *token_type = [MCHObject stringForKey:@"token_type" inDictionary:dictionary];
-    
-    NSParameterAssert(access_token);
-    
-    NSDate *tokenExpireDate = nil;
-    if (expires_in && expires_in.longLongValue > 0){
-        tokenExpireDate = [NSDate dateWithTimeIntervalSinceNow:expires_in.longLongValue];
-    }
-    
-    if (access_token && access_token.length > 0) {
-        self.accessToken = access_token;
-    }
-    if (expires_in) {
-        self.expiresIn = expires_in;
-    }
-    if (id_token && id_token.length > 0) {
-        self.idToken = id_token;
-    }
-    if (refresh_token && refresh_token.length > 0) {
-        self.refreshToken = refresh_token;
-    }
-    if (token_type && token_type.length > 0) {
-        self.tokenType = token_type;
-    }
-    if (tokenExpireDate) {
-        self.tokenExpireDate = tokenExpireDate;
+    if (dictionary != nil) {
+      NSString *access_token = [MCHObject stringForKey:@"access_token" inDictionary:dictionary];
+      NSNumber *expires_in = [MCHObject numberForKey:@"expires_in" inDictionary:dictionary];
+      NSString *id_token = [MCHObject stringForKey:@"id_token" inDictionary:dictionary];
+      NSString *refresh_token = [MCHObject stringForKey:@"refresh_token" inDictionary:dictionary];
+      NSString *token_type = [MCHObject stringForKey:@"token_type" inDictionary:dictionary];
+
+      NSParameterAssert(access_token);
+
+      NSDate *tokenExpireDate = nil;
+      if (expires_in && expires_in.longLongValue > 0){
+          tokenExpireDate = [NSDate dateWithTimeIntervalSinceNow:expires_in.longLongValue];
+      }
+
+      if (access_token && access_token.length > 0) {
+          self.accessToken = access_token;
+      }
+      if (expires_in) {
+          self.expiresIn = expires_in;
+      }
+      if (id_token && id_token.length > 0) {
+          self.idToken = id_token;
+      }
+      if (refresh_token && refresh_token.length > 0) {
+          self.refreshToken = refresh_token;
+      }
+      if (token_type && token_type.length > 0) {
+          self.tokenType = token_type;
+      }
+      if (tokenExpireDate) {
+          self.tokenExpireDate = tokenExpireDate;
+      }
     }
     
     self.tokenUpdateError = error;
