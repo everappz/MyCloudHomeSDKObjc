@@ -279,9 +279,9 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
     return [self.requestsCache allCachedCancellableRequestsWithURLTasks];
 }
 
-- (MCHAPIClientRequest *)createCachedCancellableRequest{
+- (MCHAPIClientRequest *)createCachedCancellableRequestWithIdentifier:(NSString *)requestIdentifier{
     NSParameterAssert(self.requestsCache);
-    return [self.requestsCache createCachedCancellableRequest];
+    return [self.requestsCache createCachedCancellableRequestWithIdentifier:requestIdentifier];
 }
 
 - (void)removeCancellableRequestFromCache:(id<MCHAPIClientCancellableRequest> _Nonnull)request{

@@ -18,7 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (NSArray<MCHAPIClientRequest *> * _Nullable)allCachedCancellableRequestsWithURLTasks;
 
-- (MCHAPIClientRequest *)createCachedCancellableRequest;
+- (MCHAPIClientRequest *)createCachedCancellableRequestWithIdentifier:(NSString *)requestIdentifier;
 
 - (void)removeCancellableRequestFromCache:(id<MCHAPIClientCancellableRequest> _Nonnull)request;
 

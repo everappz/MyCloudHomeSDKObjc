@@ -52,8 +52,9 @@
     return result;
 }
 
-- (MCHAPIClientRequest *)createCachedCancellableRequest{
+- (MCHAPIClientRequest *)createCachedCancellableRequestWithIdentifier:(NSString *)requestIdentifier{
     MCHAPIClientRequest *clientRequest = [[MCHAPIClientRequest alloc] init];
+    clientRequest.requestIdentifier = requestIdentifier;
     [self addCancellableRequestToCache:clientRequest];
     return clientRequest;
 }
@@ -65,10 +66,13 @@
     }
     
     [self.stateLock lock];
+    if (self.cancellableRequests.count >= 1000) {
+        @try{NSParameterAssert(NO);}@catch(NSException *exc){}
+        [self.cancellableRequests makeObjectsPerformSelector:@selector(cancel)];
+        [self.cancellableRequests removeAllObjects];
+    }
     [self.cancellableRequests addObject:request];
-    NSParameterAssert(self.cancellableRequests.count < 100);
-    MCHLog(@"MCH_REQUEST_ADD: %@",@(self.cancellableRequests.count));
-    
+    MCHLog(@"MCH_REQUEST_ADD: (%@), %@",@(self.cancellableRequests.count),request.requestIdentifier);
     MCHMakeWeakSelf;
     MCHMakeWeakReference(request);
     [(MCHAPIClientRequest *)request setCancelBlock:^{
@@ -79,8 +83,10 @@
 }
 
 - (void)removeCancellableRequestFromCache:(id<MCHAPIClientCancellableRequest> _Nonnull)request{
+    NSString *requestIdentifier = @"null";
     if ([request isKindOfClass:[MCHAPIClientRequest class]]) {
         MCHAPIClientRequest *clientRequest = (MCHAPIClientRequest *)request;
+        requestIdentifier = clientRequest.requestIdentifier;
         [self removeCancellableRequestFromCache:clientRequest.childRequest];
         clientRequest.childRequest = nil;
     }
@@ -88,7 +94,7 @@
     if (request != nil) {
         [self.stateLock lock];
         [self.cancellableRequests removeObject:request];
-        MCHLog(@"MCH_REQUEST_REMOVE: %@",@(self.cancellableRequests.count));
+        MCHLog(@"MCH_REQUEST_REMOVE: (%@), %@",@(self.cancellableRequests.count),requestIdentifier);
         [self.stateLock unlock];
     }
 }
