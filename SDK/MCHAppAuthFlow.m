@@ -176,8 +176,8 @@
     //NSString *scope = [MCHObject stringForKey:@"scope" inDictionary:dictionary];
     NSString *token_type = [MCHObject stringForKey:@"token_type" inDictionary:dictionary];
     
-    NSParameterAssert(access_token);
-    NSParameterAssert(refresh_token);
+    @try{NSParameterAssert(access_token);}@catch(NSException *exc){}
+    @try{NSParameterAssert(refresh_token);}@catch(NSException *exc){}
     
     NSDate *tokenExpireDate = nil;
     if (expires_in && expires_in.longLongValue > 0){
