@@ -83,8 +83,7 @@ typedef void(^MCHAPIClientEndpointAndAccessTokenCompletionBlock)(id<MCHEndpointC
 
 typedef void(^MCHAuthorizationWebViewCoordinatorLoadingBlock)(WKWebView *webView);
 typedef void(^MCHAuthorizationWebViewCoordinatorErrorBlock)(WKWebView *webView, NSError *webViewError);
-typedef void(^MCHAuthorizationWebViewCoordinatorCompletionBlock)(WKWebView *webView,
-                                                                 NSURL * _Nullable webViewRedirectURL,
+typedef void(^MCHAuthorizationWebViewCoordinatorCompletionBlock)(NSURL * _Nullable webViewRedirectURL,
                                                                  NSError * _Nullable error);
 
 typedef void (^MCHAppAuthManagerAuthorizationBlock)(MCHAuthState *_Nullable authState,

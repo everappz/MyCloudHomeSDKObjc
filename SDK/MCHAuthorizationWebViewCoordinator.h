@@ -13,8 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface MCHAuthorizationWebViewCoordinator : NSObject
 
-- (instancetype)initWithWebView:(WKWebView *)webView
-                    redirectURI:(NSURL *)redirectURI;
+- (instancetype)initWithWebView:(WKWebView *)webView redirectURI:(NSURL *)redirectURI;
+- (instancetype)initWithViewController:(UIViewController *)viewController redirectURI:(NSURL *)redirectURI;
 
 @property (nonatomic, weak, readonly) WKWebView *webView;
 @property (nonatomic, strong, readonly) NSURL *redirectURI;
@@ -26,8 +26,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic,copy) MCHAuthorizationWebViewCoordinatorCompletionBlock completionBlock;
 
 - (BOOL)presentExternalUserAgentRequest:(NSURLRequest *)request;
-- (void)dismissExternalUserAgentAnimated:(BOOL)animated
-                              completion:(nullable dispatch_block_t)completion;
+
+- (void)dismissExternalUserAgentAnimated:(BOOL)animated completion:(nullable dispatch_block_t)completion;
+
+- (void)handleRedirectURL:(NSURL *)redirectURL;
 
 @end
 

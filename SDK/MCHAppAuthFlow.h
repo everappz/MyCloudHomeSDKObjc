@@ -19,15 +19,19 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, copy) NSString *redirectURI;
 @property(nonatomic, copy) NSArray<NSString *> *scopes;
 
-@property (nonatomic,strong)WKWebView *webView;
-@property (nonatomic,copy)MCHAuthorizationWebViewCoordinatorLoadingBlock webViewDidStartLoadingBlock;
-@property (nonatomic,copy)MCHAuthorizationWebViewCoordinatorLoadingBlock webViewDidFinishLoadingBlock;
-@property (nonatomic,copy)MCHAuthorizationWebViewCoordinatorErrorBlock webViewDidFailWithErrorBlock;
-@property (nonatomic,copy)MCHAppAuthManagerAuthorizationBlock completionBlock;
+@property (nonatomic, weak, nullable) UIViewController *viewController;
+
+@property (nonatomic, strong, nullable) WKWebView *webView;
+@property (nonatomic, copy) MCHAuthorizationWebViewCoordinatorLoadingBlock webViewDidStartLoadingBlock;
+@property (nonatomic, copy) MCHAuthorizationWebViewCoordinatorLoadingBlock webViewDidFinishLoadingBlock;
+@property (nonatomic, copy) MCHAuthorizationWebViewCoordinatorErrorBlock webViewDidFailWithErrorBlock;
+@property (nonatomic, copy) MCHAppAuthManagerAuthorizationBlock completionBlock;
 
 - (void)start;
 
 - (void)cancel;
+
+- (void)handleRedirectURL:(NSURL *)redirectURL;
 
 @end
 

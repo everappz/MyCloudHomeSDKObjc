@@ -64,7 +64,7 @@
         NSURL *authZeroURL = endPointConfiguration.authZeroURL;
         NSCParameterAssert(authZeroURL);
         
-        if(authZeroURL){
+        if (authZeroURL) {
             
             NSURL *authorizationEndpoint = [authZeroURL URLByAppendingPathComponent:kMCHAuthorize];
             NSURL *tokenEndpoint = [authZeroURL URLByAppendingPathComponent:kMCHOAuthToken];
@@ -77,24 +77,31 @@
             
             NSURLRequest *authStartURLRequest = authStartRequest.URLRequest;
             
-            if(authStartURLRequest){
+            if (authStartURLRequest) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    MCHAuthorizationWebViewCoordinator *coordinator =
-                    [[MCHAuthorizationWebViewCoordinator alloc] initWithWebView:strongSelf.webView
-                                                                    redirectURI:redirectURI];
+                    
+                    MCHAuthorizationWebViewCoordinator *coordinator = nil;
+                    
+                    if (strongSelf.webView) {
+                        coordinator = [[MCHAuthorizationWebViewCoordinator alloc] initWithWebView:strongSelf.webView redirectURI:redirectURI];
+                    }
+                    else {
+                        coordinator = [[MCHAuthorizationWebViewCoordinator alloc] initWithViewController:strongSelf.viewController redirectURI:redirectURI];
+                    }
+                    
                     coordinator.webViewDidStartLoadingBlock = strongSelf.webViewDidStartLoadingBlock;
                     coordinator.webViewDidFinishLoadingBlock = strongSelf.webViewDidFinishLoadingBlock;
                     coordinator.webViewDidFailWithErrorBlock = strongSelf.webViewDidFailWithErrorBlock;
-                    coordinator.completionBlock = ^(WKWebView *webView, NSURL * _Nullable webViewRedirectURL, NSError * _Nullable error)
-                    {
-                        NSString *code = [MCHAppAuthFlow codeFromURL:webViewRedirectURL];
+                    coordinator.completionBlock = ^(NSURL * _Nullable webViewRedirectURL, NSError * _Nullable error) {
+                        NSString *code = nil;
+                        if (webViewRedirectURL) {
+                            code = [MCHAppAuthFlow codeFromURL:webViewRedirectURL];
+                        }
                         if (code) {
                             [strongSelf getTokenUsingURL:tokenEndpoint code:code];
                         }
-                        else{
-                            [strongSelf completeFlowWithAuthState:nil
-                                            endpointConfiguration:nil
-                                                            error:error];
+                        else {
+                            [strongSelf completeFlowWithAuthState:nil endpointConfiguration:nil error:error];
                         }
                     };
                     strongSelf.webViewCoordinator = coordinator;
@@ -118,6 +125,10 @@
                                             error:[NSError MCHErrorWithCode:MCHErrorCodeCannotGetAuthURL]];
         }
     }];
+}
+
+- (void)handleRedirectURL:(NSURL *)redirectURL{
+    [self.webViewCoordinator handleRedirectURL:redirectURL];
 }
 
 + (NSString *_Nullable)codeFromURL:(NSURL *)URL{

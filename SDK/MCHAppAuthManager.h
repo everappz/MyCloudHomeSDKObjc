@@ -34,11 +34,24 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)new NS_UNAVAILABLE;
 - (instancetype)init NS_UNAVAILABLE;
 
-- (MCHAppAuthFlow *_Nullable )authFlowWithAutoCodeExchangeFromWebView:(WKWebView *)webView
+- (MCHAppAuthFlow *_Nullable)authFlowWithAutoCodeExchangeFromWebView:(WKWebView *)webView
                                           webViewDidStartLoadingBlock:(MCHAuthorizationWebViewCoordinatorLoadingBlock)webViewDidStartLoadingBlock
                                          webViewDidFinishLoadingBlock:(MCHAuthorizationWebViewCoordinatorLoadingBlock)webViewDidFinishLoadingBlock
                                          webViewDidFailWithErrorBlock:(MCHAuthorizationWebViewCoordinatorErrorBlock)webViewDidFailWithErrorBlock
                                                       completionBlock:(MCHAppAuthManagerAuthorizationBlock)completionBlock;
+
+- (MCHAppAuthFlow *_Nullable)authFlowWithAutoCodeExchangeFromViewController:(UIViewController *)viewController
+                                                      completionBlock:(MCHAppAuthManagerAuthorizationBlock)completionBlock;
+
+//in AppDelegate
+//- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation;
+//if ([[url absoluteString] hasPrefix:@"wd.com"]) {
+//    NSCParameterAssert([MCHAppAuthManager sharedManager]);
+//    [[MCHAppAuthManager sharedManager] handleRedirectURL:url];
+//    return YES;
+//}
+
+- (void)handleRedirectURL:(NSURL *)url;
 
 @end
 
