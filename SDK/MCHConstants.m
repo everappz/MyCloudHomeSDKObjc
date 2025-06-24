@@ -8,7 +8,7 @@
 
 #import "MCHConstants.h"
 
-NSString * const kMCHClientConfigURL = @"http://config.mycloud.com/config/v1/config";
+NSString * const kMCHClientConfigURL = @"https://config.mycloud.com/config/v1/config";
 NSString * const kMCHCloudServiceUrls = @"cloud.service.urls";
 NSString * const kMCHComponentMap = @"componentMap";
 NSString * const kMCHServiceDeviceUrl = @"service.device.url";
